@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSOFT Store | Toko Buku & Kebutuhan Modern</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-zoom:hover .zoom-img { transform: scale(1.05); }
+        .zoom-img { transition: transform 0.4s ease; }
+        [v-cloak] { display: none; }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased" id="app" v-cloak>
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
+                        B
+                    </div>
+                    <span class="font-bold text-2xl tracking-tight text-gray-900">BSOFT<span class="text-brand-600">.</span></span>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-2xl mx-8">
+                    <div class="relative w-full">
+                        <input type="text" v-model="searchQuery" placeholder="Cari judul buku, pengarang, atau barang..." 
+                            class="w-full bg-gray-100 border-transparent focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-200 rounded-full py-2.5 px-5 pl-12 text-sm transition-all duration-300">
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 top-3.5 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Icons & Auth -->
+                <div class="flex items-center gap-6">
+                    <div class="relative cursor-pointer hover:text-brand-600 transition">
+                        <i class="fa-solid fa-cart-shopping text-xl text-gray-600"></i>
+                        <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">{{ cartCount }}</span>
+                    </div>
+                    <div class="hidden sm:flex items-center gap-4 border-l pl-6 border-gray-200">
+                        <a href="#" class="text-sm font-medium text-gray-500 hover:text-brand-600 transition">Masuk</a>
+                        <a href="#" class="text-sm font-medium bg-brand-600 text-white px-5 py-2.5 rounded-full hover:bg-brand-700 transition shadow-lg shadow-brand-500/30">Daftar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <div class="bg-brand-900 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 lg:py-20 flex flex-col md:flex-row items-center justify-between">
+            <div class="md:w-1/2 text-center md:text-left mb-10 md:mb-0">
+                <span class="bg-white/10 text-brand-100 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-4 inline-block backdrop-blur-sm border border-white/20">Katalog Terbaru</span>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
+                    Pusat Koleksi Literasi & <br><span class="text-brand-400">Teknologi Terbaik</span>
+                </h1>
+                <p class="text-brand-100 text-lg mb-8 max-w-lg mx-auto md:mx-0">
+                    Dari buku teologi, novel fiksi, buku IT, hingga perangkat mirrorless. Temukan jutaan inspirasi dengan harga bersaing.
+                </p>
+                <button class="bg-brand-500 text-white font-semibold px-8 py-3.5 rounded-full hover:bg-brand-400 transition shadow-lg shadow-brand-500/40">
+                    Mulai Belanja <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+            <div class="md:w-5/12 flex gap-4 justify-center md:justify-end">
+                <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=300" class="rounded-2xl shadow-2xl rotate-[-4deg] object-cover h-64 w-44 mt-8 border-4 border-white/10" alt="Buku">
+                <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=300" class="rounded-2xl shadow-2xl rotate-[4deg] object-cover h-64 w-44 border-4 border-white/10" alt="Buku">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8">
+        
+        <!-- Sidebar Filters -->
+        <aside class="md:w-64 flex-shrink-0">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-28">
+                <h3 class="font-bold text-gray-900 mb-4 text-lg border-b border-gray-100 pb-3">Kategori Produk</h3>
+                <ul class="space-y-3">
+                    <li v-for="cat in categories" :key="cat">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="radio" name="category" :value="cat" v-model="selectedCategory" 
+                                class="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 cursor-pointer">
+                            <span class="text-sm font-medium transition-colors" :class="selectedCategory === cat ? 'text-brand-600 font-bold' : 'text-gray-600 group-hover:text-gray-900'">
+                                {{ cat }}
+                            </span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <div class="flex-1">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Jelajahi Produk</h2>
+                    <p class="text-sm text-gray-500 mt-1">Menampilkan {{ filteredProducts.length }} hasil untuk Anda</p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="filteredProducts.length === 0" class="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <i class="fa-solid fa-box-open text-5xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-bold text-gray-900">Produk tidak ditemukan</h3>
+                <p class="text-gray-500 text-sm mt-2">Coba ubah kata kunci pencarian atau ganti kategori.</p>
+                <button @click="resetFilters" class="mt-6 text-brand-600 font-medium hover:underline">Reset Semua Filter</button>
+            </div>
+
+            <!-- Grid -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div v-for="product in filteredProducts" :key="product.id" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-xl hover:border-brand-100 transition-all duration-300 group card-zoom flex flex-col h-full relative">
+                    
+                    <!-- Cover Image Placeholder (Menggunakan Unsplash karena URL tidak ada di Gsheet) -->
+                    <div class="relative h-48 rounded-xl overflow-hidden mb-4 bg-gray-50 border border-gray-100">
+                        <img :src="product.image" :alt="product.judul" class="w-full h-full object-cover zoom-img">
+                        <span class="absolute top-2 left-2 bg-white/95 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-gray-700 shadow-sm border border-gray-100">
+                            {{ product.tipe_stok }}
+                        </span>
+                    </div>
+                    
+                    <div class="flex-1 flex flex-col">
+                        <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider mb-1.5">{{ product.golongan || product.sub_tipe_stok }}</p>
+                        <h3 class="font-bold text-gray-900 leading-snug mb-1 line-clamp-2 text-sm" :title="product.judul">
+                            {{ product.judul }}
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-4 truncate"><i class="fa-solid fa-pen-nib mr-1.5 opacity-60"></i>{{ product.pengarang !== '-' ? product.pengarang : 'Non-Buku / Umum' }}</p>
+                        
+                        <div class="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
+                            <span class="font-extrabold text-gray-900">{{ formatPrice(product.harga) }}</span>
+                            <button @click="addToCart" class="w-9 h-9 bg-gray-50 border border-gray-100 hover:bg-brand-600 hover:border-brand-600 hover:text-white text-gray-700 rounded-full flex items-center justify-center transition-all shadow-sm">
+                                <i class="fa-solid fa-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                <div class="col-span-1 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">B</div>
+                        <span class="font-bold text-xl tracking-tight">BSOFT.</span>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                        Solusi terlengkap untuk database literasi, buku rohani, buku IT, hingga elektronik modern.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-brand-500 hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-brand-500 hover:text-white transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-brand-500 hover:text-white transition"><i class="fa-brands fa-twitter"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Kategori Produk</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-brand-400 transition">Buku Rohani</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition">Buku Umum & Fiksi</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition">Komputer & Teknik</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition">Elektronik & Non Book</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Layanan Pelanggan</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-brand-400 transition">Pusat Bantuan</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition">Lacak Pesanan</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition">Syarat & Ketentuan</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Berlangganan</h4>
+                    <p class="text-gray-400 text-sm mb-4">Dapatkan info rilis terbaru dan promo eksklusif.</p>
+                    <div class="flex shadow-lg shadow-black/20 rounded-lg">
+                        <input type="email" placeholder="Email Anda..." class="bg-gray-800 border-none py-2.5 px-4 text-sm w-full text-white focus:outline-none rounded-l-lg">
+                        <button class="bg-brand-600 hover:bg-brand-500 px-5 rounded-r-lg text-white transition"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between">
+                <p class="text-gray-500 text-xs">© 2026 BSOFT Store by Senior Developer. All rights reserved.</p>
+                <div class="flex gap-4 mt-4 md:mt-0 text-gray-600 text-2xl">
+                    <i class="fa-brands fa-cc-visa hover:text-gray-400 transition cursor-pointer"></i>
+                    <i class="fa-brands fa-cc-mastercard hover:text-gray-400 transition cursor-pointer"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    searchQuery: '',
+                    selectedCategory: 'Semua Kategori',
+                    categories: ['Semua Kategori', 'Buku Rohani', 'Buku Umum', 'Non Book'],
+                    cartCount: 0,
+                    
+                    // Sampel data diolah langsung dari Data GSheets yang Anda berikan
+                    products: [
+                        { id: '1', judul: '123 Oke, Outline Khotbah Ekspositori', pengarang: 'Ps. Rudy R. Sirait', tipe_stok: 'Buku Rohani', sub_tipe_stok: 'Teologi', golongan: 'Homiletika', harga: 98000, image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400' },
+                        { id: '2', judul: '3D Yesus Domba 39x58', pengarang: '-', tipe_stok: 'Non Book', sub_tipe_stok: 'Aksesoris', golongan: 'Aksesoris', harga: 500000, image: 'https://images.unsplash.com/photo-1569982175971-d92b01cf8694?auto=format&fit=crop&q=80&w=400' },
+                        { id: '3', judul: '#48 Hipnotis Cinta Ala Gus Miftah', pengarang: 'Gus Miftah', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Fiksi', golongan: 'Fiksi', harga: 69000, image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=400' },
+                        { id: '4', judul: '#Catatan Ayah Pintar, Menjadi Pendamping Persalinan', pengarang: 'Yesie Aprillia', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Parenting', golongan: 'Parenting', harga: 114000, image: 'https://images.unsplash.com/photo-1543269664-56d74c65a0c3?auto=format&fit=crop&q=80&w=400' },
+                        { id: '5', judul: 'Rekayasa Perangkat Lunak Edisi 7', pengarang: 'Roger S. Pressman', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Komputer', golongan: 'Software', harga: 250000, image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=400' },
+                        { id: '6', judul: 'Elemen-elemen Mesin Dalam Perancangan', pengarang: 'Robert L.Mott', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Teknik', golongan: 'Mesin', harga: 262000, image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=400' },
+                        { id: '7', judul: 'Kreasi Manipulasi Foto Digital Dengan Photoshop', pengarang: 'Madcoms', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Komputer', golongan: 'Desain Grafis', harga: 100500, image: 'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?auto=format&fit=crop&q=80&w=400' },
+                        { id: '8', judul: '#StopBullyingStartLoving', pengarang: '@icampusindonesia', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Self Improvement', golongan: 'Psikologi', harga: 149000, image: 'https://images.unsplash.com/photo-1522881113591-b66236b285c5?auto=format&fit=crop&q=80&w=400' },
+                        { id: '9', judul: 'Stiker Cermin Hexagonal', pengarang: '-', tipe_stok: 'Non Book', sub_tipe_stok: 'Aksesoris', golongan: 'Dekorasi', harga: 36500, image: 'https://images.unsplash.com/photo-1615873968403-89e068629265?auto=format&fit=crop&q=80&w=400' },
+                        { id: '10', judul: '100 Humor Asyik', pengarang: 'Xavier Quentin Pranata', tipe_stok: 'Buku Rohani', sub_tipe_stok: 'Humor', golongan: 'Humor', harga: 43500, image: 'https://images.unsplash.com/photo-1527269534026-c86f4009eace?auto=format&fit=crop&q=80&w=400' },
+                        { id: '11', judul: '(SL) Mirrorless Camera', pengarang: '-', tipe_stok: 'Non Book', sub_tipe_stok: 'Kamera', golongan: 'Elektronik', harga: 12245000, image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=400' },
+                        { id: '12', judul: 'Panduan Belajar CorelDraw X7', pengarang: 'Madcoms', tipe_stok: 'Buku Umum', sub_tipe_stok: 'Komputer', golongan: 'Desain Grafis', harga: 109500, image: 'https://images.unsplash.com/photo-1626785774625-ddc1e483bb01?auto=format&fit=crop&q=80&w=400' }
+                    ]
+                }
+            },
+            computed: {
+                filteredProducts() {
+                    return this.products.filter(p => {
+                        const matchCat = this.selectedCategory === 'Semua Kategori' || p.tipe_stok === this.selectedCategory;
+                        const matchSearch = p.judul.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                            p.pengarang.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        return matchCat && matchSearch;
+                    });
+                }
+            },
+            methods: {
+                formatPrice(value) {
+                    return new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    }).format(value);
+                },
+                addToCart() {
+                    this.cartCount++;
+                },
+                resetFilters() {
+                    this.searchQuery = '';
+                    this.selectedCategory = 'Semua Kategori';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
