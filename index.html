@@ -26,10 +26,7 @@
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        dark: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                        }
+                        dark: { 800: '#1e293b', 900: '#0f172a' }
                     }
                 }
             }
@@ -45,34 +42,39 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white" id="app" v-cloak>
 
-    <!-- App Shell -->
     <div class="min-h-screen flex flex-col">
-        
         <!-- Header -->
         <header class="bg-dark-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
             <div class="max-w-[1700px] mx-auto px-6 h-16 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg shadow-inner">
-                        B
-                    </div>
+                    <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg shadow-inner">B</div>
                     <div>
                         <h1 class="font-bold text-base tracking-wide">BSOFT Enterprise Inventory</h1>
-                        <p class="text-[11px] text-slate-400">Sinkronisasi Real-Time Google Sheets (45,000+ SKU)</p>
+                        <p class="text-[11px] text-slate-400">Sinkronisasi Langsung Google Sheets (45,000+ SKU)</p>
                     </div>
                 </div>
 
-                <!-- Navigation Tabs -->
-                <div class="flex items-center bg-dark-800 p-1 rounded-lg border border-slate-700">
-                    <button @click="activeTab = 'database'" 
-                        :class="activeTab === 'database' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
-                        class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-table-cells"></i> Database Utama (<span class="font-mono">{{ totalRecords }}</span>)
-                    </button>
-                    <button @click="activeTab = 'mass-check'" 
-                        :class="activeTab === 'mass-check' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
-                        class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-file-excel"></i> Cek Stok Massal (Excel)
-                    </button>
+                <div class="flex items-center gap-4">
+                    <!-- Status Loading GSheet -->
+                    <div v-if="isLoading" class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg flex items-center gap-2 font-mono">
+                        <i class="fa-solid fa-rotate fa-spin"></i> Memuat Data GSheet...
+                    </div>
+                    <div v-else class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-lg flex items-center gap-2 font-mono">
+                        <i class="fa-solid fa-circle-check"></i> {{ totalRecords.toLocaleString() }} SKU Aktif
+                    </div>
+
+                    <div class="flex items-center bg-dark-800 p-1 rounded-lg border border-slate-700">
+                        <button @click="activeTab = 'database'" 
+                            :class="activeTab === 'database' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
+                            class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-table-cells"></i> Database Utama
+                        </button>
+                        <button @click="activeTab = 'mass-check'" 
+                            :class="activeTab === 'mass-check' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
+                            class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel"></i> Cek Stok Massal
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -80,10 +82,8 @@
         <!-- Main Content Area -->
         <main class="flex-1 max-w-[1700px] w-full mx-auto p-6 flex flex-col">
             
-            <!-- ================= VIEW 1: DATABASE UTAMA ================= -->
+            <!-- VIEW 1: DATABASE UTAMA -->
             <div v-show="activeTab === 'database'" class="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                
-                <!-- Toolbar & Filter -->
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3 flex-1 min-w-[320px]">
                         <div class="relative w-full">
@@ -100,14 +100,13 @@
                         </select>
 
                         <select v-model="itemsPerPage" @change="currentPage = 1" class="text-xs bg-white border border-slate-300 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
-                            <option :value="50">50 baris / halaman</option>
-                            <option :value="100">100 baris / halaman</option>
-                            <option :value="500">500 baris / halaman</option>
+                            <option :value="50">50 baris</option>
+                            <option :value="100">100 baris</option>
+                            <option :value="500">500 baris</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Table View -->
                 <div class="flex-1 overflow-auto custom-scrollbar relative max-h-[calc(100vh-260px)]">
                     <table class="w-full text-left border-collapse min-w-[1800px]">
                         <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-wider sticky top-0 z-20 border-b border-slate-200 shadow-sm">
@@ -130,7 +129,13 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-xs">
-                            <tr v-if="paginatedProducts.length === 0">
+                            <tr v-if="isLoading">
+                                <td colspan="15" class="px-4 py-20 text-center text-slate-400 font-mono">
+                                    <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-blue-600"></i>
+                                    <p>Sedang mendownload dan memproses seluruh baris GSheet...</p>
+                                </td>
+                            </tr>
+                            <tr v-else-if="paginatedProducts.length === 0">
                                 <td colspan="15" class="px-4 py-16 text-center text-slate-400">
                                     <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-300"></i>
                                     <p class="font-semibold">Tidak ada data ditemukan</p>
@@ -163,7 +168,6 @@
                     </table>
                 </div>
 
-                <!-- Pagination Bar -->
                 <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-medium text-slate-600">
                     <div>
                         Menampilkan <span class="font-bold text-slate-900">{{ paginationStart }}</span> - <span class="font-bold text-slate-900">{{ paginationEnd }}</span> dari <span class="font-bold text-slate-900">{{ filteredProducts.length.toLocaleString() }}</span> data tersaring (Total: {{ totalRecords.toLocaleString() }} SKU)
@@ -178,9 +182,8 @@
                 </div>
             </div>
 
-            <!-- ================= VIEW 2: CEK STOK MASSAL (DRAG & DROP) ================= -->
+            <!-- VIEW 2: CEK STOK MASSAL -->
             <div v-show="activeTab === 'mass-check'" class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
-                <!-- Dropzone Box -->
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                     <h2 class="font-bold text-sm text-slate-900 mb-1"><i class="fa-solid fa-upload text-blue-600 mr-2"></i> Upload File Cek Massal</h2>
                     <p class="text-xs text-slate-500 mb-4">Drag & drop file Excel/CSV berisi kolom Kode/ID Item di kolom pertama.</p>
@@ -219,7 +222,6 @@
                     </div>
                 </div>
 
-                <!-- Result Table Box -->
                 <div class="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                         <h2 class="font-bold text-sm text-slate-900">Hasil Pencocokan Massal (<span class="font-mono">{{ massCheckResults.length }}</span>)</h2>
@@ -267,6 +269,10 @@
     </div>
 
     <script>
+        // URL Google Sheet yang langsung terhubung ke dokumen Anda
+        const sheetIdMain = '1oOR3gFw363uttAx6nFnf1ffVvVjY4v-dxn9C0Ij4VLU';
+        const csvUrlMain = `https://docs.google.com/spreadsheets/d/${sheetIdMain}/export?format=csv`;
+
         const { createApp } = Vue;
 
         createApp({
@@ -276,13 +282,14 @@
                     database: new Map(), // Hash Map O(1)
                     productList: [],
                     totalRecords: 0,
+                    isLoading: true,
                     
                     // Filter & Pagination
                     searchQuery: '',
                     filterTipe: '',
                     uniqueTipeStok: [],
                     currentPage: 1,
-                    itemsPerPage: 50,
+                    itemsPerPage: 100,
                     
                     // Mass Check
                     isDragging: false,
@@ -317,10 +324,10 @@
                     return this.productList.filter(p => {
                         const matchType = !this.filterTipe || p.tipe_stok === this.filterTipe;
                         const matchSearch = !q || 
-                            p.iditem.toLowerCase().includes(q) || 
-                            p.judul.toLowerCase().includes(q) || 
-                            p.isbn.toLowerCase().includes(q) || 
-                            p.pengarang.toLowerCase().includes(q);
+                            (p.iditem && p.iditem.toLowerCase().includes(q)) || 
+                            (p.judul && p.judul.toLowerCase().includes(q)) || 
+                            (p.isbn && p.isbn.toLowerCase().includes(q)) || 
+                            (p.pengarang && p.pengarang.toLowerCase().includes(q));
                         return matchType && matchSearch;
                     });
                 },
@@ -355,7 +362,6 @@
                     return f ? f.label : key;
                 },
                 
-                // File Upload Handling
                 handleFileSelect(e) {
                     const file = e.target.files[0];
                     if (file) this.readExcel(file);
@@ -386,8 +392,6 @@
                 },
                 processMassCheck() {
                     if (this.uploadedIds.length === 0) return;
-                    
-                    // Hash Map O(1) lookup blazing fast across 45,000 rows
                     this.massCheckResults = this.uploadedIds.map(id => {
                         const data = this.database.get(id);
                         return {
@@ -412,53 +416,38 @@
                     XLSX.writeFile(wb, "Hasil_Cek_Stok_BSOFT.xlsx");
                 },
 
-                // Load Data from GSheet CSV URL
-                loadData() {
-                    // Masukkan URL "Publish to Web -> CSV" dari Google Sheets Anda yang berisi puluhan ribu baris data ke variabel di bawah ini:
-                    const gsheetCsvUrl = ''; 
+                loadDataFromGSheet() {
+                    this.isLoading = true;
+                    Papa.parse(csvUrlMain, {
+                        download: true,
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                            const rows = results.data;
+                            const tipeSet = new Set();
+                            
+                            rows.forEach(item => {
+                                if (!item.iditem) return;
+                                item.stok = parseInt(item.stok) || 0;
+                                this.database.set(item.iditem.trim(), item);
+                                this.productList.push(item);
+                                if (item.tipe_stok && item.tipe_stok !== '-') tipeSet.add(item.tipe_stok);
+                            });
 
-                    if (gsheetCsvUrl) {
-                        Papa.parse(gsheetCsvUrl, {
-                            download: true,
-                            header: true,
-                            skipEmptyLines: true,
-                            complete: (results) => {
-                                this.processParsedData(results.data);
-                            }
-                        });
-                    } else {
-                        // Demo data komplit berkolom-kolom
-                        const demoCsv = `iditem,judul,pengarang,edisi,cetakan,isbn,tahun_terbit,ukuran_p,ukuran_l,jml_halaman,kertas_isi,tipe_stok,sub_tipe_stok,golongan,harga1,harga2,harga3,harga4,harga5,stok
-"02-48-10-00-000024","123 Oke, Outline Khotbah Ekspositori","Ps. Rudy R. Sirait, S.Th.","i(Soft Cover)","1","978-979-29-4821-9","2018","15","23","xii+444","HVS","Buku Rohani","Teologi","Homiletika","98000","108000","122500","60000","0","123"
-"09-02-00-00-001556","3D Yesus Domba 39x58 (47x66) PLG040","-","0","0","0","0","0","0","0","-","Narwastu","Non Book","-","500000","0","0","0","0","0"
-"09-01-00-00-000517","Buku Katekismus Heidelberg - BP055","-","-","-","-","0","0","0","0","-","Narwastu","Book","-","47000","0","0","0","0","0"
-"01-12-01-00-000752","#48 Hipnotis Cinta Ala Gus Miftah","Gus Miftah","i OP","1","978-623-8419-24-1","2024","13","19","vi+106","Bookpaper","Buku Umum","Fiksi","Fiksi","69000","76000","86500","0","0","6347"
-"01-32-01-00-000013","#Catatan Ayah Pintar, Menjadi Pendamping Persalinan","Yesie Aprillia","i OP","1","978-979-29-4551-5","2014","15","19","x+262","HVS/Artpaper","Buku Umum","Parenting","Parenting","114000","125500","142500","0","95000","165"
-"01-27-28-00-000001","Rekayasa Perangkat Lunak Edisi 7","Roger S. Pressman, Ph.D.","i OP","1G","978-979-29-3104-4","2012","19","23","xxii+782","HVS","Buku Umum","Komputer","Software","250000","275000","312500","0","192000","759"`;
-                        
-                        Papa.parse(demoCsv, {
-                            header: true,
-                            skipEmptyLines: true,
-                            complete: (res) => {
-                                this.processParsedData(res.data);
-                            }
-                        });
-                    }
-                },
-                processParsedData(rows) {
-                    const tipeSet = new Set();
-                    rows.forEach(item => {
-                        item.stok = parseInt(item.stok) || 0;
-                        this.database.set(item.iditem, item);
-                        this.productList.push(item);
-                        if (item.tipe_stok && item.tipe_stok !== '-') tipeSet.add(item.tipe_stok);
+                            this.totalRecords = this.productList.length;
+                            this.uniqueTipeStok = Array.from(tipeSet).sort();
+                            this.isLoading = false;
+                        },
+                        error: (err) => {
+                            console.error("Gagal memuat Google Sheet:", err);
+                            alert("Gagal memuat Google Sheet secara langsung. Pastikan Google Sheet sudah disetel 'Publish to web' atau dibagikan ke publik (Anyone with the link can view).");
+                            this.isLoading = false;
+                        }
                     });
-                    this.totalRecords = this.productList.length;
-                    this.uniqueTipeStok = Array.from(tipeSet).sort();
                 }
             },
             mounted() {
-                this.loadData();
+                this.loadDataFromGSheet();
             }
         }).mount('#app');
     </script>
