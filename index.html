@@ -3,208 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pusat Data Stok | Internal BSOFT</title>
+    <title>Enterprise Inventory Hub | BSOFT Data Center</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Vue.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- PapaParse for CSV processing -->
+    <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <!-- SheetJS for Excel Drag & Drop processing -->
+    <!-- SheetJS -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Inter"', 'sans-serif'] },
-                    colors: { brand: { 50: '#f0f9ff', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' } }
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
                 }
             }
         }
     </script>
     <style>
         [v-cloak] { display: none; }
-        .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
-        .table-container::-webkit-scrollbar-track { background: #f1f5f9; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .drag-active { border-color: #0284c7; background-color: #f0f9ff; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased" id="app" v-cloak>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white" id="app" v-cloak>
 
-    <!-- Top Navigation -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div class="px-6 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-brand-700 rounded text-white flex items-center justify-center font-bold text-xl shadow-sm">B</div>
-                <div>
-                    <h1 class="font-bold text-lg text-slate-900 leading-tight">BSOFT Inventory Hub</h1>
-                    <p class="text-xs text-slate-500">Read-only Data Center (Sinkronisasi GSheet)</p>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button @click="activeTab = 'database'" :class="activeTab === 'database' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-4 py-2 rounded-md text-sm font-medium transition">
-                    <i class="fa-solid fa-database mr-2"></i> Database Utama
-                </button>
-                <button @click="activeTab = 'mass-check'" :class="activeTab === 'mass-check' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-4 py-2 rounded-md text-sm font-medium transition">
-                    <i class="fa-solid fa-file-excel mr-2"></i> Cek Stok Massal
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <main class="p-6 max-w-[1600px] mx-auto h-[calc(100vh-65px)] overflow-hidden flex flex-col">
+    <!-- App Shell -->
+    <div class="min-h-screen flex flex-col">
         
-        <!-- ================= TAB 1: DATABASE UTAMA ================= -->
-        <div v-show="activeTab === 'database'" class="flex flex-col h-full bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div class="p-4 border-b border-slate-200 bg-slate-50/50 rounded-t-xl flex flex-wrap gap-4 items-center justify-between">
-                <div class="flex-1 min-w-[300px] relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
-                    <input type="text" v-model="searchQuery" placeholder="Cari ID, Judul, ISBN, Pengarang..." class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none">
+        <!-- Header -->
+        <header class="bg-dark-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+            <div class="max-w-[1700px] mx-auto px-6 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg shadow-inner">
+                        B
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-base tracking-wide">BSOFT Enterprise Inventory</h1>
+                        <p class="text-[11px] text-slate-400">Sinkronisasi Real-Time Google Sheets (45,000+ SKU)</p>
+                    </div>
                 </div>
-                <div class="flex gap-3">
-                    <select v-model="filterTipe" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="">Semua Kategori</option>
-                        <option v-for="tipe in uniqueTipeStok" :key="tipe" :value="tipe">{{ tipe }}</option>
-                    </select>
+
+                <!-- Navigation Tabs -->
+                <div class="flex items-center bg-dark-800 p-1 rounded-lg border border-slate-700">
+                    <button @click="activeTab = 'database'" 
+                        :class="activeTab === 'database' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
+                        class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells"></i> Database Utama (<span class="font-mono">{{ totalRecords }}</span>)
+                    </button>
+                    <button @click="activeTab = 'mass-check'" 
+                        :class="activeTab === 'mass-check' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
+                        class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Cek Stok Massal (Excel)
+                    </button>
                 </div>
             </div>
+        </header>
 
-            <div class="overflow-x-auto table-container flex-1">
-                <table class="w-full text-left border-collapse min-w-[1500px]">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
-                            <th class="px-4 py-3 font-semibold sticky left-0 bg-slate-50 z-10 w-40 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Kode / ID Item</th>
-                            <th class="px-4 py-3 font-semibold w-72">Judul / Nama Barang</th>
-                            <th class="px-4 py-3 font-semibold">Pengarang</th>
-                            <th class="px-4 py-3 font-semibold">Kategori & Golongan</th>
-                            <th class="px-4 py-3 font-semibold">Spesifikasi Detail</th>
-                            <th class="px-4 py-3 font-semibold text-right">Harga Jual</th>
-                            <th class="px-4 py-3 font-semibold text-center w-24">Stok</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm">
-                        <tr v-for="item in filteredProducts.slice(0, 100)" :key="item.iditem" class="hover:bg-brand-50/50 transition-colors">
-                            <td class="px-4 py-3 font-mono text-xs text-brand-700 font-semibold sticky left-0 bg-white border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.02)]">{{ item.iditem }}</td>
-                            <td class="px-4 py-3 font-medium text-slate-800">
-                                <div class="font-semibold text-[13px]">{{ item.judul }}</div>
-                                <div v-if="item.isbn && item.isbn !== '-'" class="text-[11px] text-slate-500 mt-0.5">ISBN: {{ item.isbn }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-slate-600 text-xs">{{ item.pengarang !== '-' ? item.pengarang : '-' }}</td>
-                            <td class="px-4 py-3">
-                                <div class="text-xs font-semibold text-slate-700">{{ item.tipe_stok }}</div>
-                                <div class="text-[11px] text-slate-500">{{ item.golongan }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-[11px] text-slate-600 leading-relaxed">
-                                <div v-if="item.jml_halaman && item.jml_halaman !== '0'">Hal: {{ item.jml_halaman }} | Kertas: {{ item.kertas_isi || '-' }}</div>
-                                <div v-if="item.ukuran_p && item.ukuran_p !== '0'">Ukuran: {{ item.ukuran_p }}x{{ item.ukuran_l }} | Tahun: {{ item.tahun_terbit }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-right font-bold text-slate-700 text-xs">{{ formatPrice(item.harga1) }}</td>
-                            <td class="px-4 py-3 text-center">
-                                <span :class="[
-                                    'inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold w-12 border',
-                                    item.stok > 10 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                                    item.stok > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'
-                                ]">{{ item.stok }}</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="p-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between">
-                <span>Memuat data via <strong>Hash Map O(1)</strong>. Menampilkan max 100 baris pertama dari {{ filteredProducts.length }} hasil untuk efisiensi render.</span>
-                <span>Total Data Tersimpan: <strong>{{ database.size }} SKU</strong></span>
-            </div>
-        </div>
-
-        <!-- ================= TAB 2: CEK STOK MASSAL ================= -->
-        <div v-show="activeTab === 'mass-check'" class="flex flex-col h-full gap-4">
+        <!-- Main Content Area -->
+        <main class="flex-1 max-w-[1700px] w-full mx-auto p-6 flex flex-col">
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-                <!-- Dropzone & Config -->
-                <div class="col-span-1 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col p-5">
-                    <h2 class="font-bold text-lg mb-4 text-slate-800">Upload & Cocokkan Data</h2>
-                    <p class="text-xs text-slate-500 mb-4">Upload file Excel (.xlsx) atau CSV yang berisi <strong>Kolom ID/Kode Barang</strong>. Sistem akan mencari data tersebut di Hash Map dengan instan.</p>
-                    
-                    <!-- Drag & Drop Zone -->
-                    <div 
-                        @dragover.prevent="isDragging = true" 
-                        @dragleave.prevent="isDragging = false" 
-                        @drop.prevent="handleFileDrop"
-                        :class="isDragging ? 'drag-active' : 'border-slate-300 bg-slate-50'"
-                        class="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors mb-6 relative"
-                        @click="$refs.fileInput.click()">
-                        
-                        <input type="file" ref="fileInput" class="hidden" accept=".xlsx, .xls, .csv" @change="handleFileSelect">
-                        <i class="fa-solid fa-file-excel text-4xl text-slate-400 mb-3"></i>
-                        <p class="text-sm font-medium text-slate-700">Drag & Drop file Excel ke sini</p>
-                        <p class="text-xs text-slate-500 mt-1">atau klik untuk memilih file</p>
+            <!-- ================= VIEW 1: DATABASE UTAMA ================= -->
+            <div v-show="activeTab === 'database'" class="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                
+                <!-- Toolbar & Filter -->
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 flex-1 min-w-[320px]">
+                        <div class="relative w-full">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" v-model="searchQuery" @input="currentPage = 1" placeholder="Cari berdasarkan ID Item, Judul Buku, ISBN, atau Pengarang..." 
+                                class="w-full pl-10 pr-4 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                        </div>
                     </div>
 
-                    <!-- Output Configuration -->
-                    <div v-if="uploadedIds.length > 0" class="flex-1 flex flex-col">
-                        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
-                            <div>
-                                <i class="fa-solid fa-check-circle mr-2"></i> <strong>{{ uploadedIds.length }}</strong> Kode berhasil dibaca.
-                            </div>
-                            <button @click="resetMassCheck" class="text-emerald-700 hover:text-emerald-900 text-xs underline">Reset</button>
+                    <div class="flex items-center gap-3">
+                        <select v-model="filterTipe" @change="currentPage = 1" class="text-xs bg-white border border-slate-300 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
+                            <option value="">Semua Kategori (Tipe Stok)</option>
+                            <option v-for="tipe in uniqueTipeStok" :key="tipe" :value="tipe">{{ tipe }}</option>
+                        </select>
+
+                        <select v-model="itemsPerPage" @change="currentPage = 1" class="text-xs bg-white border border-slate-300 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700">
+                            <option :value="50">50 baris / halaman</option>
+                            <option :value="100">100 baris / halaman</option>
+                            <option :value="500">500 baris / halaman</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div class="flex-1 overflow-auto custom-scrollbar relative max-h-[calc(100vh-260px)]">
+                    <table class="w-full text-left border-collapse min-w-[1800px]">
+                        <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-wider sticky top-0 z-20 border-b border-slate-200 shadow-sm">
+                            <tr>
+                                <th class="px-4 py-3 sticky left-0 bg-slate-50 z-30 w-44 border-r border-slate-200">ID Item</th>
+                                <th class="px-4 py-3 w-80">Judul Item</th>
+                                <th class="px-4 py-3 w-48">Pengarang</th>
+                                <th class="px-4 py-3 w-32">Edisi / Cetakan</th>
+                                <th class="px-4 py-3 w-36">ISBN</th>
+                                <th class="px-4 py-3 w-24 text-center">Tahun</th>
+                                <th class="px-4 py-3 w-28 text-center">Ukuran (P x L)</th>
+                                <th class="px-4 py-3 w-28 text-center">Halaman</th>
+                                <th class="px-4 py-3 w-28">Kertas</th>
+                                <th class="px-4 py-3 w-32">Tipe Stok</th>
+                                <th class="px-4 py-3 w-32">Golongan</th>
+                                <th class="px-4 py-3 w-32 text-right">Harga GP1</th>
+                                <th class="px-4 py-3 w-32 text-right">Harga GP2</th>
+                                <th class="px-4 py-3 w-32 text-right">Harga GP3</th>
+                                <th class="px-4 py-3 w-24 text-center">Stok</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            <tr v-if="paginatedProducts.length === 0">
+                                <td colspan="15" class="px-4 py-16 text-center text-slate-400">
+                                    <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-300"></i>
+                                    <p class="font-semibold">Tidak ada data ditemukan</p>
+                                </td>
+                            </tr>
+                            <tr v-for="item in paginatedProducts" :key="item.iditem" class="hover:bg-blue-50/40 transition-colors">
+                                <td class="px-4 py-2.5 font-mono font-semibold text-blue-600 sticky left-0 bg-white border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.02)]">{{ item.iditem }}</td>
+                                <td class="px-4 py-2.5 font-medium text-slate-900 truncate max-w-[320px]" :title="item.judul">{{ item.judul }}</td>
+                                <td class="px-4 py-2.5 text-slate-600 truncate max-w-[180px]">{{ item.pengarang }}</td>
+                                <td class="px-4 py-2.5 text-slate-500 font-mono text-[11px]">{{ item.edisi }} / {{ item.cetakan }}</td>
+                                <td class="px-4 py-2.5 text-slate-500 font-mono text-[11px]">{{ item.isbn }}</td>
+                                <td class="px-4 py-2.5 text-center text-slate-600">{{ item.tahun_terbit }}</td>
+                                <td class="px-4 py-2.5 text-center text-slate-600 font-mono">{{ item.ukuran_p }} x {{ item.ukuran_l }}</td>
+                                <td class="px-4 py-2.5 text-center text-slate-600">{{ item.jml_halaman }}</td>
+                                <td class="px-4 py-2.5 text-slate-600">{{ item.kertas_isi }}</td>
+                                <td class="px-4 py-2.5"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold">{{ item.tipe_stok }}</span></td>
+                                <td class="px-4 py-2.5 text-slate-600 text-[11px]">{{ item.golongan }}</td>
+                                <td class="px-4 py-2.5 text-right font-medium text-slate-700 font-mono">{{ formatPrice(item.harga1) }}</td>
+                                <td class="px-4 py-2.5 text-right font-medium text-slate-700 font-mono">{{ formatPrice(item.harga2) }}</td>
+                                <td class="px-4 py-2.5 text-right font-medium text-slate-700 font-mono">{{ formatPrice(item.harga3) }}</td>
+                                <td class="px-4 py-2.5 text-center">
+                                    <span :class="[
+                                        'px-2 py-0.5 rounded text-[11px] font-bold font-mono',
+                                        item.stok > 10 ? 'bg-emerald-100 text-emerald-800' : 
+                                        item.stok > 0 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                                    ]">{{ item.stok }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Bar -->
+                <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-medium text-slate-600">
+                    <div>
+                        Menampilkan <span class="font-bold text-slate-900">{{ paginationStart }}</span> - <span class="font-bold text-slate-900">{{ paginationEnd }}</span> dari <span class="font-bold text-slate-900">{{ filteredProducts.length.toLocaleString() }}</span> data tersaring (Total: {{ totalRecords.toLocaleString() }} SKU)
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @click="currentPage = 1" :disabled="currentPage === 1" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">Pertama</button>
+                        <button @click="currentPage--" :disabled="currentPage === 1" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span class="px-3 py-1 font-mono">Halaman {{ currentPage }} dari {{ totalPages || 1 }}</span>
+                        <button @click="currentPage++" :disabled="currentPage >= totalPages" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button @click="currentPage = totalPages" :disabled="currentPage >= totalPages" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">Terakhir</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 2: CEK STOK MASSAL (DRAG & DROP) ================= -->
+            <div v-show="activeTab === 'mass-check'" class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
+                <!-- Dropzone Box -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                    <h2 class="font-bold text-sm text-slate-900 mb-1"><i class="fa-solid fa-upload text-blue-600 mr-2"></i> Upload File Cek Massal</h2>
+                    <p class="text-xs text-slate-500 mb-4">Drag & drop file Excel/CSV berisi kolom Kode/ID Item di kolom pertama.</p>
+                    
+                    <div @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="handleFileDrop"
+                        :class="isDragging ? 'border-blue-600 bg-blue-50/50' : 'border-slate-300 bg-slate-50'"
+                        class="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all mb-6 flex-1"
+                        @click="$refs.fileInput.click()">
+                        <input type="file" ref="fileInput" class="hidden" accept=".xlsx, .xls, .csv" @change="handleFileSelect">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg mb-3">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <p class="text-xs font-bold text-slate-700">Klik atau seret file ke sini</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Format .xlsx, .xls, atau .csv</p>
+                    </div>
+
+                    <div v-if="uploadedIds.length > 0" class="space-y-4">
+                        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-2 rounded-lg flex items-center justify-between font-medium">
+                            <span><i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> {{ uploadedIds.length.toLocaleString() }} ID terbaca.</span>
+                            <button @click="resetMassCheck" class="text-emerald-700 hover:underline text-[11px]">Reset</button>
                         </div>
 
-                        <h3 class="font-semibold text-sm mb-3 text-slate-700">Pilih Data yang Ingin Ditampilkan:</h3>
-                        <div class="space-y-2 text-sm flex-1 overflow-y-auto">
-                            <label v-for="field in availableFields" :key="field.key" class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer border border-transparent hover:border-slate-200">
-                                <input type="checkbox" v-model="selectedFields" :value="field.key" class="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500">
-                                <span class="ml-3 font-medium text-slate-700">{{ field.label }}</span>
-                            </label>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700 mb-2">Pilih Kelengkapan Kolom:</p>
+                            <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs">
+                                <label v-for="f in availableFields" :key="f.key" class="flex items-center gap-2.5 p-1.5 hover:bg-slate-50 rounded cursor-pointer">
+                                    <input type="checkbox" v-model="selectedFields" :value="f.key" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5">
+                                    <span class="text-slate-700 font-medium">{{ f.label }}</span>
+                                </label>
+                            </div>
                         </div>
-                        
-                        <button @click="processMassCheck" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-700 transition mt-4 shadow-md">
-                            Proses Pengecekan
+
+                        <button @click="processMassCheck" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-lg transition shadow-sm">
+                            Proses Pengecekan Hash Map
                         </button>
                     </div>
                 </div>
 
-                <!-- Results Table -->
-                <div class="col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col">
-                    <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50 rounded-t-xl">
-                        <h2 class="font-bold text-slate-800">Hasil Pengecekan ({{ massCheckResults.length }} Baris)</h2>
-                        <button v-if="massCheckResults.length > 0" @click="exportToExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium transition flex items-center gap-2">
-                            <i class="fa-solid fa-download"></i> Export Hasil (Excel)
+                <!-- Result Table Box -->
+                <div class="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <h2 class="font-bold text-sm text-slate-900">Hasil Pencocokan Massal (<span class="font-mono">{{ massCheckResults.length }}</span>)</h2>
+                        <button v-if="massCheckResults.length > 0" @click="exportMassCheckExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Export ke Excel
                         </button>
                     </div>
 
-                    <div v-if="massCheckResults.length === 0" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-10 text-center">
-                        <i class="fa-solid fa-table-list text-6xl mb-4 text-slate-200"></i>
-                        <p class="text-lg font-medium text-slate-600">Belum ada data diproses</p>
-                        <p class="text-sm mt-2 max-w-md">Upload file Excel berisi kolom ID Barang, pilih kelengkapan data yang dibutuhkan, lalu klik Proses.</p>
+                    <div v-if="massCheckResults.length === 0" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                        <i class="fa-solid fa-file-excel text-5xl mb-3 text-slate-200"></i>
+                        <p class="text-sm font-semibold text-slate-600">Belum ada file yang diproses</p>
+                        <p class="text-xs mt-1 text-slate-400 max-w-sm">Unggah file Excel di panel sebelah kiri untuk mencocokkan kode barang dengan database utama secara instan.</p>
                     </div>
 
-                    <div v-else class="overflow-x-auto table-container flex-1 p-0">
+                    <div v-else class="flex-1 overflow-auto custom-scrollbar">
                         <table class="w-full text-left border-collapse whitespace-nowrap">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
-                                    <th class="px-4 py-3 font-semibold border-r border-slate-200">ID / Kode Pencarian</th>
-                                    <th class="px-4 py-3 font-semibold border-r border-slate-200">Status Lookup</th>
-                                    <th v-for="fieldKey in selectedFields" :key="fieldKey" class="px-4 py-3 font-semibold border-r border-slate-200">
-                                        {{ getFieldLabel(fieldKey) }}
+                            <thead class="bg-slate-50 text-slate-600 text-[10px] font-bold uppercase sticky top-0 z-10 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-2.5 border-r border-slate-200">ID Dicari</th>
+                                    <th class="px-4 py-2.5 border-r border-slate-200 text-center">Status</th>
+                                    <th v-for="fk in selectedFields" :key="fk" class="px-4 py-2.5 border-r border-slate-200">
+                                        {{ getFieldLabel(fk) }}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-sm">
+                            <tbody class="divide-y divide-slate-100 text-xs font-mono">
                                 <tr v-for="(res, idx) in massCheckResults" :key="idx" class="hover:bg-slate-50">
-                                    <td class="px-4 py-2 font-mono text-xs font-semibold">{{ res.searchedId }}</td>
-                                    <td class="px-4 py-2 text-xs">
-                                        <span v-if="res.found" class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-bold">Ditemukan</span>
-                                        <span v-else class="bg-rose-100 text-rose-700 px-2 py-1 rounded font-bold">Tidak Ditemukan</span>
+                                    <td class="px-4 py-2 font-semibold text-slate-800 border-r border-slate-100">{{ res.searchedId }}</td>
+                                    <td class="px-4 py-2 text-center border-r border-slate-100">
+                                        <span :class="res.found ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'" class="px-2 py-0.5 rounded text-[10px] font-bold">
+                                            {{ res.found ? 'Ditemukan' : 'Tidak Ada' }}
+                                        </span>
                                     </td>
-                                    <td v-for="fieldKey in selectedFields" :key="fieldKey" class="px-4 py-2 text-slate-700 border-r border-slate-100">
-                                        {{ res.data ? formatValue(fieldKey, res.data[fieldKey]) : '-' }}
+                                    <td v-for="fk in selectedFields" :key="fk" class="px-4 py-2 text-slate-600 border-r border-slate-100">
+                                        {{ res.data ? formatValue(fk, res.data[fk]) : '-' }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -212,113 +262,121 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+
+        </main>
+    </div>
 
     <script>
-        // Data CSV dummy untuk tes langsung jalan (silakan sesuaikan dengan fungsi fetch dari Google Sheets nanti)
-        const rawCSVData = `iditem,judul,pengarang,edisi,cetakan,isbn,tahun_terbit,ukuran_p,ukuran_l,jml_halaman,kertas_isi,tipe_stok,sub_tipe_stok,golongan,harga1,harga2,harga3,harga4,harga5,stok
-"02-48-10-00-000024","123 Oke, Outline Khotbah Ekspositori","Ps. Rudy R. Sirait, S.Th., MA.CE., M.Th","i(Soft Cover) OP","1","978-979-29-4821-9","2018","15","23","xii+444","HVS","Buku Rohani","Teologi","Homiletika","98000","108000","122500","60000","0","123"
-"09-02-00-00-001556","3D Yesus Domba 39x58 (47x66) PLG040","-","0","0","0","0","0","0","0","-","Narwastu","Non Book","-","500000","0","0","0","0","0"
-"09-01-00-00-000517","Buku Katekismus Heidelberg - BP055","-","-","-","-","0","0","0","0","-","Narwastu","Book","-","47000","0","0","0","0","0"
-"09-01-00-00-000677","Ensiklopedi Alkitab Masa Kini Jilid 2 M-Z - BK004","-","i","1","-","0","0","0","-","-","Narwastu","Book","-","164000","0","0","0","0","0"
-"01-12-01-00-000752","#48 Hipnotis Cinta Ala Gus Miftah","Gus Miftah","i OP","1","978-623-8419-24-1","2024","13","19","vi+106","Bookpaper","Buku Umum","Fiksi","Fiksi","69000","76000","86500","0","0","6347"
-"01-32-01-00-000013","#Catatan Ayah Pintar, Menjadi Pendamping Persalinan","Yesie Aprillia","i OP","1","978-979-29-4551-5","2014","15","19","x+262","HVS/Artpaper","Buku Umum","Parenting","Parenting","114000","125500","142500","0","95000","165"
-"01-27-28-00-000001","(Buku 1) Rekayasa Perangkat Lunak, Pendekatan Praktis edisi 7","Roger S. Pressman, Ph.D.","i OP","1G(1,1b^1c,1d)","978-979-29-3104-4","2012","19","23","xxii+782","HVS","Buku Umum","Komputer","Software","250000","275000","312500","0","192000","759"
-"01-52-06-00-000001","(Buku 1) Elemen-elemen Mesin Dalam Perancangan Mekanisme","Robert L.Mott","i td OP","1^","978-979-29-0684-4","2009","20","28","x+662","HVS","Buku Umum","Teknik","Mesin","262000","288500","327500","0","187000","162"
-"01-27-09-00-000001","(Creative Art Photo Decoration) Kreasi Manipulasi Foto Digital","Madcoms","i OP","1^","978-979-29-3324-6","2012","16","23","xii+228","HVS","Buku Umum","Komputer","Desain Grafis","100500","111000","126000","40000","77000","1537"
-"07-01-00-00-000226","(SL) DSLR","-","-","-","-","0","0","0","0","-","Non Book","Elektronik","-","10540000","0","0","0","0","0"
-"07-01-00-00-000232","(SL) Mirrorless","-","-","-","-","0","0","0","0","-","Non Book","Elektronik","-","12245000","0","0","0","0","0"
-"13-21-02-00-000003","*e-100% Cepat Menguasai Piano The Best Instruction","Van Eko Sirait, Hana Permata","i","1","978-602-5689-01-7","2018","19","28","184+iv","Non Andi","Ketrampilan","Musik","119000","0","0","0","0","0"
-"01-44-01-00-000115","*e-1001 Cara Menghasilkan Pupuk Organik","Nurheti Yuliarti","i","1 G","978-979-29-0914-2","2009","14","21","vi+72","-","Buku Umum","Pertanian","Pertanian","43500","0","0","35373","0","0"`;
-
         const { createApp } = Vue;
 
         createApp({
             data() {
                 return {
                     activeTab: 'database',
-                    database: new Map(), // Hash Map untuk O(1) Lookups
-                    productList: [], // Array untuk rendering tabel tab 1
+                    database: new Map(), // Hash Map O(1)
+                    productList: [],
+                    totalRecords: 0,
                     
-                    // Tab 1 Filters
+                    // Filter & Pagination
                     searchQuery: '',
                     filterTipe: '',
                     uniqueTipeStok: [],
+                    currentPage: 1,
+                    itemsPerPage: 50,
                     
-                    // Tab 2 Mass Check
+                    // Mass Check
                     isDragging: false,
                     uploadedIds: [],
                     massCheckResults: [],
                     availableFields: [
-                        { key: 'judul', label: 'Judul / Nama Barang' },
-                        { key: 'stok', label: 'Sisa Stok Fisik' },
-                        { key: 'harga1', label: 'Harga Jual (Normal)' },
-                        { key: 'pengarang', label: 'Pengarang / Merk' },
+                        { key: 'judul', label: 'Judul Item' },
+                        { key: 'pengarang', label: 'Pengarang' },
+                        { key: 'edisi', label: 'Edisi' },
+                        { key: 'cetakan', label: 'Cetakan' },
                         { key: 'isbn', label: 'ISBN' },
-                        { key: 'tipe_stok', label: 'Tipe Kategori' },
-                        { key: 'golongan', label: 'Golongan' },
+                        { key: 'tahun_terbit', label: 'Tahun Terbit' },
+                        { key: 'ukuran_p', label: 'Ukuran Panjang' },
+                        { key: 'ukuran_l', label: 'Ukuran Lebar' },
                         { key: 'jml_halaman', label: 'Jumlah Halaman' },
-                        { key: 'tahun_terbit', label: 'Tahun Terbit' }
+                        { key: 'kertas_isi', label: 'Kertas' },
+                        { key: 'tipe_stok', label: 'Tipe Stok' },
+                        { key: 'golongan', label: 'Golongan' },
+                        { key: 'harga1', label: 'Harga GP1' },
+                        { key: 'harga2', label: 'Harga GP2' },
+                        { key: 'harga3', label: 'Harga GP3' },
+                        { key: 'stok', label: 'Sisa Stok' }
                     ],
-                    selectedFields: ['judul', 'stok', 'harga1'] // Default checked
+                    selectedFields: ['judul', 'stok', 'harga1']
                 }
             },
             computed: {
                 filteredProducts() {
-                    const search = this.searchQuery.toLowerCase();
+                    const q = this.searchQuery.toLowerCase().trim();
+                    if (!q && !this.filterTipe) return this.productList;
+                    
                     return this.productList.filter(p => {
                         const matchType = !this.filterTipe || p.tipe_stok === this.filterTipe;
-                        const matchSearch = !search || 
-                            p.iditem.toLowerCase().includes(search) || 
-                            p.judul.toLowerCase().includes(search) || 
-                            p.isbn.toLowerCase().includes(search) ||
-                            p.pengarang.toLowerCase().includes(search);
+                        const matchSearch = !q || 
+                            p.iditem.toLowerCase().includes(q) || 
+                            p.judul.toLowerCase().includes(q) || 
+                            p.isbn.toLowerCase().includes(q) || 
+                            p.pengarang.toLowerCase().includes(q);
                         return matchType && matchSearch;
                     });
+                },
+                totalPages() {
+                    return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+                },
+                paginatedProducts() {
+                    const start = (this.currentPage - 1) * this.itemsPerPage;
+                    return this.filteredProducts.slice(start, start + this.itemsPerPage);
+                },
+                paginationStart() {
+                    if (this.filteredProducts.length === 0) return 0;
+                    return (this.currentPage - 1) * this.itemsPerPage + 1;
+                },
+                paginationEnd() {
+                    const end = this.currentPage * this.itemsPerPage;
+                    return end > this.filteredProducts.length ? this.filteredProducts.length : end;
                 }
             },
             methods: {
-                formatPrice(value) {
-                    const num = parseInt(value);
-                    if(isNaN(num) || num === 0) return '-';
-                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+                formatPrice(val) {
+                    const n = parseInt(val);
+                    if (isNaN(n) || n === 0) return '-';
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
                 },
-                formatValue(key, value) {
-                    if (key === 'harga1') return this.formatPrice(value);
-                    return value;
+                formatValue(key, val) {
+                    if (key.includes('harga')) return this.formatPrice(val);
+                    return val;
                 },
                 getFieldLabel(key) {
-                    const field = this.availableFields.find(f => f.key === key);
-                    return field ? field.label : key;
+                    const f = this.availableFields.find(x => x.key === key);
+                    return f ? f.label : key;
                 },
                 
-                // --- File Processing (Drag & Drop) ---
+                // File Upload Handling
                 handleFileSelect(e) {
                     const file = e.target.files[0];
-                    if(file) this.readExcelFile(file);
+                    if (file) this.readExcel(file);
                 },
                 handleFileDrop(e) {
                     this.isDragging = false;
                     const file = e.dataTransfer.files[0];
-                    if(file) this.readExcelFile(file);
+                    if (file) this.readExcel(file);
                 },
-                readExcelFile(file) {
+                readExcel(file) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        // Convert sheet to array of arrays (A1, A2, A3...)
-                        const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                        const wb = XLSX.read(data, { type: 'array' });
+                        const sheet = wb.Sheets[wb.SheetNames[0]];
+                        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                         
-                        // Asumsi: Kolom pertama (index 0) adalah kumpulan ID/Kode Barang
                         this.uploadedIds = json.map(row => row[0])
-                                               .filter(id => id && typeof id === 'string' && id.trim() !== '')
-                                               .map(id => id.trim());
-                        
-                        this.$refs.fileInput.value = null; // reset input
+                                               .filter(id => id !== undefined && id !== null && String(id).trim() !== '')
+                                               .map(id => String(id).trim());
+                        this.$refs.fileInput.value = '';
                     };
                     reader.readAsArrayBuffer(file);
                 },
@@ -327,11 +385,11 @@
                     this.massCheckResults = [];
                 },
                 processMassCheck() {
-                    if(this.uploadedIds.length === 0 || this.selectedFields.length === 0) return;
+                    if (this.uploadedIds.length === 0) return;
                     
+                    // Hash Map O(1) lookup blazing fast across 45,000 rows
                     this.massCheckResults = this.uploadedIds.map(id => {
-                        // O(1) Hash Map Lookup - Super Cepat
-                        const data = this.database.get(id); 
+                        const data = this.database.get(id);
                         return {
                             searchedId: id,
                             found: !!data,
@@ -339,56 +397,68 @@
                         };
                     });
                 },
-                exportToExcel() {
-                    if(this.massCheckResults.length === 0) return;
-                    
-                    // Siapkan data untuk sheet
-                    const dataToExport = this.massCheckResults.map(res => {
-                        const row = { 'Kode Pencarian': res.searchedId, 'Status': res.found ? 'Ditemukan' : 'Tidak Ditemukan' };
-                        this.selectedFields.forEach(key => {
-                            row[this.getFieldLabel(key)] = res.data ? res.data[key] : '-';
+                exportMassCheckExcel() {
+                    if (this.massCheckResults.length === 0) return;
+                    const exportData = this.massCheckResults.map(r => {
+                        let row = { 'ID Dicari': r.searchedId, 'Status': r.found ? 'Ditemukan' : 'Tidak Ditemukan' };
+                        this.selectedFields.forEach(fk => {
+                            row[this.getFieldLabel(fk)] = r.data ? r.data[fk] : '-';
                         });
                         return row;
                     });
-                    
-                    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "Hasil_Cek_Stok");
-                    XLSX.writeFile(workbook, "Hasil_Cek_Stok_BSOFT.xlsx");
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Hasil_Cek_Massal");
+                    XLSX.writeFile(wb, "Hasil_Cek_Stok_BSOFT.xlsx");
                 },
-                
-                // --- Initialize Database ---
-                initDatabase() {
-                    // Menggunakan PapaParse untuk parsing CSV secara aman (menghindari error koma di dalam string)
-                    Papa.parse(rawCSVData, {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                            const data = results.data;
-                            const tipeSet = new Set();
-                            
-                            data.forEach(item => {
-                                // Cast stok to int
-                                item.stok = parseInt(item.stok) || 0;
-                                
-                                // Simpan ke Hash Map
-                                this.database.set(item.iditem, item);
-                                
-                                // Simpan ke Array untuk tabel display
-                                this.productList.push(item);
-                                
-                                if(item.tipe_stok && item.tipe_stok !== '-') tipeSet.add(item.tipe_stok);
-                            });
-                            
-                            this.uniqueTipeStok = Array.from(tipeSet).sort();
-                        }
+
+                // Load Data from GSheet CSV URL
+                loadData() {
+                    // Masukkan URL "Publish to Web -> CSV" dari Google Sheets Anda yang berisi puluhan ribu baris data ke variabel di bawah ini:
+                    const gsheetCsvUrl = ''; 
+
+                    if (gsheetCsvUrl) {
+                        Papa.parse(gsheetCsvUrl, {
+                            download: true,
+                            header: true,
+                            skipEmptyLines: true,
+                            complete: (results) => {
+                                this.processParsedData(results.data);
+                            }
+                        });
+                    } else {
+                        // Demo data komplit berkolom-kolom
+                        const demoCsv = `iditem,judul,pengarang,edisi,cetakan,isbn,tahun_terbit,ukuran_p,ukuran_l,jml_halaman,kertas_isi,tipe_stok,sub_tipe_stok,golongan,harga1,harga2,harga3,harga4,harga5,stok
+"02-48-10-00-000024","123 Oke, Outline Khotbah Ekspositori","Ps. Rudy R. Sirait, S.Th.","i(Soft Cover)","1","978-979-29-4821-9","2018","15","23","xii+444","HVS","Buku Rohani","Teologi","Homiletika","98000","108000","122500","60000","0","123"
+"09-02-00-00-001556","3D Yesus Domba 39x58 (47x66) PLG040","-","0","0","0","0","0","0","0","-","Narwastu","Non Book","-","500000","0","0","0","0","0"
+"09-01-00-00-000517","Buku Katekismus Heidelberg - BP055","-","-","-","-","0","0","0","0","-","Narwastu","Book","-","47000","0","0","0","0","0"
+"01-12-01-00-000752","#48 Hipnotis Cinta Ala Gus Miftah","Gus Miftah","i OP","1","978-623-8419-24-1","2024","13","19","vi+106","Bookpaper","Buku Umum","Fiksi","Fiksi","69000","76000","86500","0","0","6347"
+"01-32-01-00-000013","#Catatan Ayah Pintar, Menjadi Pendamping Persalinan","Yesie Aprillia","i OP","1","978-979-29-4551-5","2014","15","19","x+262","HVS/Artpaper","Buku Umum","Parenting","Parenting","114000","125500","142500","0","95000","165"
+"01-27-28-00-000001","Rekayasa Perangkat Lunak Edisi 7","Roger S. Pressman, Ph.D.","i OP","1G","978-979-29-3104-4","2012","19","23","xxii+782","HVS","Buku Umum","Komputer","Software","250000","275000","312500","0","192000","759"`;
+                        
+                        Papa.parse(demoCsv, {
+                            header: true,
+                            skipEmptyLines: true,
+                            complete: (res) => {
+                                this.processParsedData(res.data);
+                            }
+                        });
+                    }
+                },
+                processParsedData(rows) {
+                    const tipeSet = new Set();
+                    rows.forEach(item => {
+                        item.stok = parseInt(item.stok) || 0;
+                        this.database.set(item.iditem, item);
+                        this.productList.push(item);
+                        if (item.tipe_stok && item.tipe_stok !== '-') tipeSet.add(item.tipe_stok);
                     });
+                    this.totalRecords = this.productList.length;
+                    this.uniqueTipeStok = Array.from(tipeSet).sort();
                 }
             },
             mounted() {
-                // Saat siap disambungkan dengan GSheet asli, ganti pemanggilan `this.initDatabase();` 
-                // dengan Fetch dari URL CSV Google Sheets seperti yang dijelaskan sebelumnya.
-                this.initDatabase();
+                this.loadData();
             }
         }).mount('#app');
     </script>
