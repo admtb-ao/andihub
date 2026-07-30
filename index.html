@@ -21,6 +21,10 @@
                     colors: {
                         primary: '#4f46e5',
                         sidebar: '#0f172a',
+                    },
+                    spacing: {
+                        'sidebar-collapsed': '5rem', /* Ukuran sidebar saat minimize */
+                        'sidebar-expanded': '16rem', /* w-64 */
                     }
                 }
             }
@@ -28,22 +32,16 @@
     </script>
 
     <style>
-        /* Mencegah scrolling ganda pada body, biarkan konten iframe yang scroll */
         body { overflow: hidden; } 
         .menu-content { display: none; }
         .menu-content.active { display: flex; }
         
-        /* Sidebar transition untuk mobile */
-        #sidebar { transition: transform 0.3s ease-in-out; }
+        /* Transisi halus saat sidebar membesar/mengecil */
+        #sidebar { transition: width 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        .menu-text-container { transition: opacity 0.2s ease-in-out; }
         
-        /* Loading skeleton effect */
-        .skeleton-loader {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
+        /* Mencegah text turun ke bawah saat transisi menyusut */
+        .whitespace-nowrap { white-space: nowrap; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen flex">
@@ -52,41 +50,41 @@
     <div id="mobile-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 hidden md:hidden" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-sidebar w-64 h-full flex flex-col text-slate-300 fixed md:relative z-30 transform -translate-x-full md:translate-x-0">
+    <!-- Default state on Desktop is Expanded (md:w-sidebar-expanded), Mobile is Hidden (-translate-x-full) -->
+    <aside id="sidebar" class="bg-sidebar w-64 shrink-0 h-full flex flex-col text-slate-300 fixed md:relative z-30 transform -translate-x-full md:translate-x-0 md:w-sidebar-expanded overflow-x-hidden">
+        
         <!-- Logo -->
-        <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900 shadow-sm">
+        <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900 shadow-sm min-w-max">
             <i class="fa-solid fa-chart-pie text-primary text-2xl mr-3"></i>
-            <span class="text-white font-bold text-lg tracking-wide">NexusDash</span>
+            <span id="logo-text" class="text-white font-bold text-lg tracking-wide menu-text-container">NexusDash</span>
         </div>
 
         <!-- Menu List -->
-        <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar">
+        <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar overflow-x-hidden">
             <ul class="space-y-1">
-                <!-- Menu 1 (Active) -->
                 <li>
-                    <a href="#" onclick="switchTab('menu1', this)" class="nav-item active flex items-center px-6 py-3 bg-primary text-white hover:bg-primary/90 transition-colors">
-                        <i class="fa-solid fa-table w-6"></i>
-                        <span class="font-medium">Data Spreadsheet</span>
+                    <a href="#" onclick="switchTab('menu1', this)" title="Data Spreadsheet" class="nav-item active flex items-center px-6 py-3 bg-primary text-white hover:bg-primary/90 transition-colors min-w-max">
+                        <i class="fa-solid fa-table w-6 text-center"></i>
+                        <span class="font-medium ml-3 menu-text-container whitespace-nowrap">Data Spreadsheet</span>
                     </a>
                 </li>
-                <!-- Menu 2 to 10 -->
-                <li><a href="#" onclick="switchTab('menu2', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-chart-line w-6"></i><span>Analisis Data</span></a></li>
-                <li><a href="#" onclick="switchTab('menu3', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-users w-6"></i><span>Manajemen Klien</span></a></li>
-                <li><a href="#" onclick="switchTab('menu4', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-box w-6"></i><span>Inventaris</span></a></li>
-                <li><a href="#" onclick="switchTab('menu5', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-file-invoice-dollar w-6"></i><span>Keuangan</span></a></li>
-                <li><a href="#" onclick="switchTab('menu6', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-calendar-days w-6"></i><span>Jadwal & Tugas</span></a></li>
-                <li><a href="#" onclick="switchTab('menu7', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-envelope w-6"></i><span>Pesan Masuk</span></a></li>
-                <li><a href="#" onclick="switchTab('menu8', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-bullhorn w-6"></i><span>Kampanye</span></a></li>
-                <li><a href="#" onclick="switchTab('menu9', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-gear w-6"></i><span>Pengaturan</span></a></li>
-                <li><a href="#" onclick="switchTab('menu10', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-circle-question w-6"></i><span>Bantuan</span></a></li>
+                <li><a href="#" onclick="switchTab('menu2', this)" title="Analisis Data" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-chart-line w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Analisis Data</span></a></li>
+                <li><a href="#" onclick="switchTab('menu3', this)" title="Manajemen Klien" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-users w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Manajemen Klien</span></a></li>
+                <li><a href="#" onclick="switchTab('menu4', this)" title="Inventaris" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-box w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Inventaris</span></a></li>
+                <li><a href="#" onclick="switchTab('menu5', this)" title="Keuangan" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-file-invoice-dollar w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Keuangan</span></a></li>
+                <li><a href="#" onclick="switchTab('menu6', this)" title="Jadwal & Tugas" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-calendar-days w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Jadwal & Tugas</span></a></li>
+                <li><a href="#" onclick="switchTab('menu7', this)" title="Pesan Masuk" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-envelope w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Pesan Masuk</span></a></li>
+                <li><a href="#" onclick="switchTab('menu8', this)" title="Kampanye" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-bullhorn w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Kampanye</span></a></li>
+                <li><a href="#" onclick="switchTab('menu9', this)" title="Pengaturan" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-gear w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Pengaturan</span></a></li>
+                <li><a href="#" onclick="switchTab('menu10', this)" title="Bantuan" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-circle-question w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Bantuan</span></a></li>
             </ul>
         </nav>
         
-        <!-- User Profile Minimal -->
-        <div class="border-t border-slate-700 p-4">
-            <div class="flex items-center gap-3">
-                <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="User" class="w-10 h-10 rounded-full">
-                <div>
+        <!-- User Profile -->
+        <div class="border-t border-slate-700 p-4 min-w-max">
+            <div class="flex items-center gap-3 ml-2">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="User" class="w-10 h-10 rounded-full shrink-0">
+                <div id="user-profile-text" class="menu-text-container">
                     <p class="text-sm font-semibold text-white">Admin Utama</p>
                     <p class="text-xs text-slate-400">admin@nexus.com</p>
                 </div>
@@ -100,13 +98,13 @@
         <!-- Top Navbar -->
         <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shadow-sm z-10">
             <div class="flex items-center gap-4">
-                <!-- Hamburger Menu Mobile -->
-                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 focus:outline-none md:hidden p-2 rounded-md hover:bg-slate-100">
+                <!-- Hamburger Menu: Selalu tampil untuk Toggle Size (Desktop) & Toggle Tampil (Mobile) -->
+                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 focus:outline-none p-2 rounded-md hover:bg-slate-100 transition-colors">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
                 
                 <!-- Search Bar -->
-                <div class="relative hidden sm:block">
+                <div class="relative hidden sm:block ml-2">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                     <input type="text" id="globalSearch" placeholder="Cari menu atau data..." 
                            class="pl-10 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all w-64 focus:w-80 outline-none">
@@ -127,32 +125,32 @@
             
             <!-- MENU 1: SPREADSHEET (ACTIVE) -->
             <div id="menu1" class="menu-content active flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200">
+                
                 <!-- Header Card & Actions -->
                 <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-xl">
                     <div>
                         <h2 class="text-lg font-bold text-slate-800">Laporan Database Eksternal</h2>
                         <p class="text-sm text-slate-500">Live data tersinkronisasi otomatis dari Google Sheets.</p>
                     </div>
-                    <!-- Action Buttons -->
+                    <!-- Action Buttons dengan Link Baru -->
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRp4LchC_VJDgfXGntovESiJ8IKLYhsKnHy2_ZXBIwN889-CzyWXmF4pCE8yYcv4t9Vsui1yNr7qwRe/pubhtml"
+                        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRp4LchC_VJDgfXGntovESiJ8IKLYhsKnHy2_ZXBIwN889-CzyWXmF4pCE8yYcv4t9Vsui1yNr7qwRe/pubhtml" 
                            target="_blank" 
                            class="flex-1 sm:flex-none text-center px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
                             <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Buka di Sheet
                         </a>
                         <!-- Download link generated by replacing pubhtml with pub?output=xlsx -->
-                        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNytEIPOgOKWAEe2VAv1Ec1vKNbyZMP5RqSJuuH4_T1JaCE9xBDHLFBhWJ9-SZcA/pub?output=xlsx" 
+                        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRp4LchC_VJDgfXGntovESiJ8IKLYhsKnHy2_ZXBIwN889-CzyWXmF4pCE8yYcv4t9Vsui1yNr7qwRe/pub?output=xlsx" 
                            class="flex-1 sm:flex-none text-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700 transition-colors">
                             <i class="fa-regular fa-file-excel mr-2"></i>Download Excel
                         </a>
                     </div>
                 </div>
 
-                <!-- Iframe Container (Full Height) -->
-                <!-- Penambahan parameter widget=true&headers=false agar sheet tab di bawah terbaca sempurna -->
+                <!-- Iframe Container dengan Link Baru -->
                 <div class="flex-1 relative w-full h-full bg-slate-100 rounded-b-xl overflow-hidden">
                     <iframe 
-                        src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNytEIPOgOKWAEe2VAv1Ec1vKNbyZMP5RqSJuuH4_T1JaCE9xBDHLFBhWJ9-SZcA/pubhtml?widget=true&amp;headers=false" 
+                        src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRp4LchC_VJDgfXGntovESiJ8IKLYhsKnHy2_ZXBIwN889-CzyWXmF4pCE8yYcv4t9Vsui1yNr7qwRe/pubhtml?widget=true&amp;headers=false" 
                         class="absolute inset-0 w-full h-full border-none"
                         title="Google Spreadsheet Data">
                     </iframe>
@@ -166,10 +164,7 @@
                 <p class="text-slate-500">Halaman ini belum diisi konten.</p>
             </div>
             
-            <div id="menu3" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center">
-                <h2 class="text-2xl font-bold text-slate-400">Manajemen Klien</h2>
-            </div>
-            <!-- Untuk efisiensi, menu 4 hingga 10 memiliki struktur empty state serupa -->
+            <div id="menu3" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Manajemen Klien</h2></div>
             <div id="menu4" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Inventaris</h2></div>
             <div id="menu5" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Keuangan</h2></div>
             <div id="menu6" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Jadwal & Tugas</h2></div>
@@ -183,6 +178,46 @@
 
     <!-- Javascript Logic -->
     <script>
+        // Logika Minimize/Maximize Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            const textContainers = document.querySelectorAll('.menu-text-container');
+
+            if (window.innerWidth >= 768) {
+                // DESKTOP: Toggle ukuran w-64 (expand) dan w-20 (minimize)
+                if (sidebar.classList.contains('md:w-sidebar-expanded')) {
+                    // Eksekusi proses minimize
+                    sidebar.classList.remove('md:w-sidebar-expanded');
+                    sidebar.classList.add('md:w-sidebar-collapsed');
+                    
+                    // Sembunyikan text agar hanya icon yang terlihat
+                    textContainers.forEach(el => {
+                        el.style.opacity = '0';
+                        setTimeout(() => el.classList.add('hidden'), 200); // Tunggu transisi selesai
+                    });
+                } else {
+                    // Eksekusi proses maximize
+                    sidebar.classList.remove('md:w-sidebar-collapsed');
+                    sidebar.classList.add('md:w-sidebar-expanded');
+                    
+                    // Munculkan kembali text
+                    textContainers.forEach(el => {
+                        el.classList.remove('hidden');
+                        setTimeout(() => el.style.opacity = '1', 10); // Memberi jeda kecil untuk merender ulang 
+                    });
+                }
+            } else {
+                // MOBILE: Buka/Tutup Sidebar seperti biasa
+                sidebar.classList.toggle('-translate-x-full');
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    overlay.classList.add('hidden');
+                } else {
+                    overlay.classList.remove('hidden');
+                }
+            }
+        }
+
         // SPA Hash Map Navigation Logic
         function switchTab(menuId, element) {
             // 1. Hide all contents
@@ -205,23 +240,18 @@
             element.classList.remove('hover:bg-slate-800', 'hover:text-white');
             element.classList.add('bg-primary', 'text-white');
 
-            // 5. Close sidebar on mobile after clicking
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
-        }
-
-        // Sidebar Toggle Logic untuk Mobile
-        function toggleSidebar() {
+            // 5. AUTO-MINIMIZE ACTION: Menyesuaikan sidebar setelah menu diklik
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-            
-            sidebar.classList.toggle('-translate-x-full');
-            
-            if (sidebar.classList.contains('-translate-x-full')) {
-                overlay.classList.add('hidden');
+            if (window.innerWidth >= 768) {
+                // Jika di Desktop dan Sidebar sedang keadaan maximize (w-sidebar-expanded), maka minimize.
+                if (sidebar.classList.contains('md:w-sidebar-expanded')) {
+                    toggleSidebar();
+                }
             } else {
-                overlay.classList.remove('hidden');
+                // Jika di Mobile, tutup sidebar
+                if (!sidebar.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
+                }
             }
         }
 
