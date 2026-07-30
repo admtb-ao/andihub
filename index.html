@@ -1,809 +1,244 @@
 <!DOCTYPE html>
-<html lang="id" class="light">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stok Buku - Dashboard Stok Profesional</title>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Dashboard Profesional</title>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Material Symbols (Icons) -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-
-    <!-- Tailwind CSS -->
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS (CDN for standalone file) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        brand: {
-                            50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 
-                            700: '#1d4ed8', 800: '#1e40af', 900: '#0f172a' // Dark sidebar color
-                        },
-                    },
-                    boxShadow: { 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)' }
+                        primary: '#4f46e5',
+                        sidebar: '#0f172a',
+                    }
                 }
             }
         }
     </script>
 
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel (JSX Compiler) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Libraries: Chart.js, PapaParse (CSV), SheetJS, jsPDF -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1e293b; overflow: hidden; }
-        .dark body { background-color: #0f172a; color: #f8fafc; }
+        /* Mencegah scrolling ganda pada body, biarkan konten iframe yang scroll */
+        body { overflow: hidden; } 
+        .menu-content { display: none; }
+        .menu-content.active { display: flex; }
         
-        /* Custom Scrollbar for sleek UI */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #334155; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Icon Styling */
-        .icon { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-        .icon-fill { font-variation-settings: 'FILL' 1; }
-
-        /* Hide sidebar on mobile by default, slide in when active */
-        .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Sidebar transition untuk mobile */
+        #sidebar { transition: transform 0.3s ease-in-out; }
         
-        /* Loading Screen */
-        #loader { position: fixed; inset: 0; background: #ffffff; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .dark #loader { background: #0f172a; }
-        .spinner { width: 48px; height: 48px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; mb-4; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Loading skeleton effect */
+        .skeleton-loader {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
     </style>
 </head>
-<body>
-    <!-- Initial Loader -->
-    <div id="loader">
-        <div class="spinner mb-4"></div>
-        <h2 class="text-xl font-semibold text-slate-800 dark:text-white">Memuat Data Google Sheets...</h2>
-        <p class="text-slate-500 text-sm mt-2">Sinkronisasi Real-time</p>
-    </div>
+<body class="bg-slate-50 text-slate-800 h-screen flex">
 
-    <!-- React Root -->
-    <div id="root"></div>
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 hidden md:hidden" onclick="toggleSidebar()"></div>
 
-    <script type="text/babel" data-type="module">
-        const { useState, useEffect, useMemo, useRef, useCallback, createContext, useContext } = React;
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-sidebar w-64 h-full flex flex-col text-slate-300 fixed md:relative z-30 transform -translate-x-full md:translate-x-0">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900 shadow-sm">
+            <i class="fa-solid fa-chart-pie text-primary text-2xl mr-3"></i>
+            <span class="text-white font-bold text-lg tracking-wide">NexusDash</span>
+        </div>
 
-        // ==========================================
-        // 1. ENGINE: GOOGLE SHEETS FETCH (CSV)
-        // ==========================================
-        const SHEET_URL = "https://docs.google.com/spreadsheets/d/1oOR3gFw363uttAx6nFnf1ffVvVjY4v-dxn9C0Ij4VLU/export?format=csv";
-
-        // Global State Context
-        const AppContext = createContext();
-
-        const AppProvider = ({ children }) => {
-            const [rawData, setRawData] = useState([]);
-            const [headers, setHeaders] = useState([]);
-            const [loading, setLoading] = useState(true);
-            const [lastUpdate, setLastUpdate] = useState(new Date());
-            const [darkMode, setDarkMode] = useState(false);
-            const [sidebarOpen, setSidebarOpen] = useState(false); // For mobile
-
-            const toggleDarkMode = () => {
-                setDarkMode(!darkMode);
-                document.documentElement.classList.toggle('dark');
-            };
-
-            const loadData = () => {
-                setLoading(true);
-                Papa.parse(SHEET_URL, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        const data = results.data;
-                        if(data.length > 0) {
-                            setHeaders(Object.keys(data[0]));
-                            setRawData(data);
-                            setLastUpdate(new Date());
-                        }
-                        setLoading(false);
-                        document.getElementById('loader').style.display = 'none';
-                    },
-                    error: (err) => {
-                        console.error("Gagal memuat data:", err);
-                        alert("Gagal memuat data dari Google Sheets. Pastikan link publik dapat diakses.");
-                        setLoading(false);
-                        document.getElementById('loader').style.display = 'none';
-                    }
-                });
-            };
-
-            useEffect(() => { loadData(); }, []);
-
-            // Generate Fast Lookups & Chart Data
-            const { stats, chartData } = useMemo(() => {
-                let totalStok = 0, stokKosong = 0, stokSedikit = 0;
-                const byKategori = {};
-                const byTahun = {};
-                const byPenulis = {};
-
-                rawData.forEach(item => {
-                    // Normalize keys based on common variations
-                    const stok = parseInt(item['Stok'] || item['stok'] || item['Qty'] || 0) || 0;
-                    const kat = item['Kategori'] || item['kategori'] || 'Lainnya';
-                    const tahun = item['Tahun'] || item['tahun'] || item['Tahun Terbit'] || 'Unknown';
-                    const penulis = item['Penulis'] || item['penulis'] || 'Unknown';
-
-                    totalStok += stok;
-                    if (stok === 0) stokKosong++;
-                    else if (stok < 10) stokSedikit++;
-
-                    byKategori[kat] = (byKategori[kat] || 0) + stok;
-                    byTahun[tahun] = (byTahun[tahun] || 0) + stok;
-                    byPenulis[penulis] = (byPenulis[penulis] || 0) + stok;
-                });
-
-                return {
-                    stats: {
-                        totalJudul: rawData.length,
-                        totalStok,
-                        stokKosong,
-                        stokSedikit,
-                        totalKategori: Object.keys(byKategori).length,
-                        totalPenulis: Object.keys(byPenulis).length,
-                        totalPenerbit: new Set(rawData.map(d => d['Penerbit'] || d['penerbit'])).size,
-                    },
-                    chartData: { byKategori, byTahun, byPenulis }
-                };
-            }, [rawData]);
-
-            return (
-                <AppContext.Provider value={{
-                    rawData, headers, loading, loadData, lastUpdate,
-                    darkMode, toggleDarkMode, sidebarOpen, setSidebarOpen,
-                    stats, chartData
-                }}>
-                    {children}
-                </AppContext.Provider>
-            );
-        };
-
-        // ==========================================
-        // 2. REUSABLE UI COMPONENTS
-        // ==========================================
-        const Icon = ({ name, className = "", filled = false }) => (
-            <span className={`icon ${filled ? 'icon-fill' : ''} ${className}`}>{name}</span>
-        );
-
-        const Badge = ({ text, type = 'default' }) => {
-            const types = {
-                default: "bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-300",
-                novel: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-                pendidikan: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-                danger: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-                warning: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-                success: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-            };
-            let colorClass = types.default;
-            if(text?.toLowerCase() === 'novel') colorClass = types.novel;
-            else if(text?.toLowerCase() === 'pendidikan') colorClass = types.pendidikan;
-            else if(type !== 'default') colorClass = types[type];
-
-            return <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${colorClass}`}>{text}</span>;
-        };
-
-        // ==========================================
-        // 3. LAYOUT COMPONENTS (SIDEBAR & HEADER)
-        // ==========================================
-        const Sidebar = () => {
-            const { sidebarOpen, setSidebarOpen } = useContext(AppContext);
-            
-            const menuGroups = [
-                { items: [
-                    { name: 'Dashboard', icon: 'home', active: true },
-                    { name: 'Semua Barang', icon: 'inventory_2' },
-                    { name: 'Kategori', icon: 'category' },
-                    { name: 'Penulis', icon: 'person' },
-                    { name: 'Penerbit', icon: 'domain' },
-                    { name: 'Supplier', icon: 'local_shipping' },
-                    { name: 'Tahun', icon: 'calendar_month' },
-                    { name: 'Gudang', icon: 'warehouse' },
-                    { name: 'Rak', icon: 'shelves' },
-                ]},
-                { items: [
-                    { name: 'Lookup Excel', icon: 'find_in_page' },
-                    { name: 'Mass Lookup', icon: 'plagiarism' },
-                    { name: 'Katalog', icon: 'menu_book' },
-                ]},
-                { items: [
-                    { name: 'Export Data', icon: 'download', hasChevron: true },
-                    { name: 'Statistik', icon: 'bar_chart' },
-                    { name: 'Favorit', icon: 'star' },
-                    { name: 'Riwayat Pencarian', icon: 'history' },
-                ]},
-                { items: [
-                    { name: 'Pengaturan', icon: 'settings' },
-                    { name: 'Tentang', icon: 'info' },
-                ]}
-            ];
-
-            return (
-                <>
-                    {/* Mobile Overlay */}
-                    {sidebarOpen && (
-                        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)}></div>
-                    )}
-                    
-                    {/* Sidebar Container */}
-                    <aside className={`fixed lg:static inset-y-0 left-0 w-64 bg-brand-900 text-slate-300 z-50 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 sidebar-transition flex flex-col h-screen`}>
-                        {/* Logo */}
-                        <div className="h-16 flex items-center px-6 text-white shrink-0">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                                <Icon name="inventory_2" className="text-white text-lg" filled />
-                            </div>
-                            <div>
-                                <h1 className="font-bold text-lg leading-tight">Stok Buku</h1>
-                                <p className="text-[10px] text-slate-400">Dashboard Stok Lengkap</p>
-                            </div>
-                            <button className="ml-auto lg:hidden text-slate-400" onClick={() => setSidebarOpen(false)}>
-                                <Icon name="close" />
-                            </button>
-                        </div>
-
-                        {/* Menus */}
-                        <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-                            {menuGroups.map((group, idx) => (
-                                <div key={idx} className={`${idx !== 0 ? 'border-t border-slate-800 mt-2 pt-2' : ''} px-3 space-y-1`}>
-                                    {group.items.map(item => (
-                                        <button key={item.name} className={`w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${item.active ? 'bg-blue-600 text-white font-medium' : 'hover:bg-slate-800 hover:text-white'}`}>
-                                            <Icon name={item.icon} className={`mr-3 text-xl ${item.active ? 'text-white' : 'text-slate-400'}`} filled={item.active} />
-                                            {item.name}
-                                            {item.hasChevron && <Icon name="expand_more" className="ml-auto text-slate-500" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Bottom Status */}
-                        <div className="p-4 shrink-0">
-                            <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 flex items-center justify-between cursor-pointer hover:bg-slate-800 transition-colors">
-                                <div>
-                                    <p className="text-[10px] text-slate-400 mb-0.5">Sumber Data</p>
-                                    <div className="flex items-center text-sm text-white">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Google_Sheets_logo_%282014-2020%29.svg" className="w-4 h-4 mr-1.5" alt="Sheets"/>
-                                        Google Sheets
-                                    </div>
-                                    <p className="text-[10px] text-emerald-400 mt-0.5">Terhubung</p>
-                                </div>
-                                <Icon name="chevron_right" className="text-slate-500" />
-                            </div>
-                        </div>
-                    </aside>
-                </>
-            );
-        };
-
-        const Header = () => {
-            const { setSidebarOpen, loadData, lastUpdate, toggleDarkMode, darkMode } = useContext(AppContext);
-            
-            const formatDate = (date) => {
-                const opt = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' };
-                return date.toLocaleDateString('id-ID', opt).replace('.', ':');
-            };
-
-            return (
-                <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0 sticky top-0 z-30">
-                    <div className="flex items-center flex-1">
-                        <button className="lg:hidden text-slate-500 hover:text-slate-700 mr-4" onClick={() => setSidebarOpen(true)}>
-                            <Icon name="menu" />
-                        </button>
-                        
-                        {/* Search Bar */}
-                        <div className="hidden sm:flex items-center bg-gray-100 dark:bg-slate-800 rounded-full px-4 py-2 w-96 max-w-full border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 transition-all">
-                            <Icon name="search" className="text-slate-400 text-lg mr-2" />
-                            <input 
-                                type="text" 
-                                placeholder="Cari kode, judul, penulis, kategori..." 
-                                className="bg-transparent border-none outline-none text-sm w-full text-slate-700 dark:text-slate-200"
-                            />
-                            <div className="bg-white dark:bg-slate-700 text-[10px] text-slate-400 px-2 py-0.5 rounded shadow-sm border border-gray-200 dark:border-slate-600 ml-2">Ctrl /</div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                        <button onClick={loadData} className="hidden sm:flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 bg-gray-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700">
-                            <Icon name="sync" className="mr-1.5 text-lg" /> Refresh Data
-                        </button>
-                        
-                        <div className="hidden md:block text-right mr-2">
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">Data terakhir diperbarui</p>
-                            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{formatDate(lastUpdate)}</p>
-                        </div>
-
-                        <button onClick={toggleDarkMode} className="p-2 text-slate-500 bg-gray-100 dark:bg-slate-800 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">
-                            <Icon name={darkMode ? "light_mode" : "dark_mode"} />
-                        </button>
-
-                        <button className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                            <Icon name="download" className="mr-1.5 text-lg" />
-                            <span className="hidden sm:inline">Ekspor</span>
-                            <Icon name="expand_more" className="ml-1 text-lg hidden sm:inline" />
-                        </button>
-                    </div>
-                </header>
-            );
-        };
-
-        // ==========================================
-        // 4. DASHBOARD CONTENT COMPONENTS
-        // ==========================================
-        const StatsRow = () => {
-            const { stats } = useContext(AppContext);
-            const cards = [
-                { title: 'Total Judul', value: stats.totalJudul.toLocaleString(), sub: 'Semua data', icon: 'menu_book', color: 'bg-blue-100 text-blue-600' },
-                { title: 'Total Stok', value: stats.totalStok.toLocaleString(), sub: 'Eksemplar', icon: 'box', color: 'bg-emerald-100 text-emerald-600' },
-                { title: 'Stok Habis', value: stats.stokKosong.toLocaleString(), sub: '0 - 0', icon: 'warning', color: 'bg-orange-100 text-orange-600' },
-                { title: 'Stok Sedikit', value: stats.stokSedikit.toLocaleString(), sub: '1 - 10', icon: 'vertical_align_bottom', color: 'bg-amber-100 text-amber-600' },
-                { title: 'Kategori', value: stats.totalKategori, sub: 'Total', icon: 'sell', color: 'bg-purple-100 text-purple-600' },
-                { title: 'Penulis', value: stats.totalPenulis.toLocaleString(), sub: 'Total', icon: 'group', color: 'bg-teal-100 text-teal-600' },
-                { title: 'Penerbit', value: stats.totalPenerbit.toLocaleString(), sub: 'Total', icon: 'domain', color: 'bg-sky-100 text-sky-600' },
-                { title: 'Tahun', value: '1995-2025', sub: 'Rentang', icon: 'calendar_month', color: 'bg-indigo-100 text-indigo-600' },
-            ];
-
-            return (
-                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4 mb-6">
-                    {cards.map((c, i) => (
-                        <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 flex items-center space-x-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${c.color} dark:bg-opacity-20`}>
-                                <Icon name={c.icon} className="text-xl" filled />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{c.title}</p>
-                                <p className="text-lg font-bold text-slate-800 dark:text-white leading-tight">{c.value}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{c.sub}</p>
-                            </div>
-                        </div>
-                    ))}
+        <!-- Menu List -->
+        <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar">
+            <ul class="space-y-1">
+                <!-- Menu 1 (Active) -->
+                <li>
+                    <a href="#" onclick="switchTab('menu1', this)" class="nav-item active flex items-center px-6 py-3 bg-primary text-white hover:bg-primary/90 transition-colors">
+                        <i class="fa-solid fa-table w-6"></i>
+                        <span class="font-medium">Data Spreadsheet</span>
+                    </a>
+                </li>
+                <!-- Menu 2 to 10 -->
+                <li><a href="#" onclick="switchTab('menu2', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-chart-line w-6"></i><span>Analisis Data</span></a></li>
+                <li><a href="#" onclick="switchTab('menu3', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-users w-6"></i><span>Manajemen Klien</span></a></li>
+                <li><a href="#" onclick="switchTab('menu4', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-box w-6"></i><span>Inventaris</span></a></li>
+                <li><a href="#" onclick="switchTab('menu5', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-file-invoice-dollar w-6"></i><span>Keuangan</span></a></li>
+                <li><a href="#" onclick="switchTab('menu6', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-calendar-days w-6"></i><span>Jadwal & Tugas</span></a></li>
+                <li><a href="#" onclick="switchTab('menu7', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-envelope w-6"></i><span>Pesan Masuk</span></a></li>
+                <li><a href="#" onclick="switchTab('menu8', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-bullhorn w-6"></i><span>Kampanye</span></a></li>
+                <li><a href="#" onclick="switchTab('menu9', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-gear w-6"></i><span>Pengaturan</span></a></li>
+                <li><a href="#" onclick="switchTab('menu10', this)" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-circle-question w-6"></i><span>Bantuan</span></a></li>
+            </ul>
+        </nav>
+        
+        <!-- User Profile Minimal -->
+        <div class="border-t border-slate-700 p-4">
+            <div class="flex items-center gap-3">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="User" class="w-10 h-10 rounded-full">
+                <div>
+                    <p class="text-sm font-semibold text-white">Admin Utama</p>
+                    <p class="text-xs text-slate-400">admin@nexus.com</p>
                 </div>
-            );
-        };
+            </div>
+        </div>
+    </aside>
 
-        const ChartsRow = () => {
-            const { chartData } = useContext(AppContext);
-            const donutRef = useRef(null);
-            const barRef = useRef(null);
-            const donutInst = useRef(null);
-            const barInst = useRef(null);
-
-            useEffect(() => {
-                if(!donutRef.current || !barRef.current) return;
-
-                // Prepare Data
-                const katEntries = Object.entries(chartData.byKategori).sort((a,b)=>b[1]-a[1]);
-                const topKat = katEntries.slice(0, 6);
-                const otherKat = katEntries.slice(6).reduce((sum, curr) => sum + curr[1], 0);
-                if(otherKat > 0) topKat.push(['Lainnya', otherKat]);
-
-                const colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#0ea5e9', '#94a3b8'];
-
-                // 1. Donut Chart
-                if(donutInst.current) donutInst.current.destroy();
-                donutInst.current = new Chart(donutRef.current, {
-                    type: 'doughnut',
-                    data: {
-                        labels: topKat.map(k => k[0]),
-                        datasets: [{
-                            data: topKat.map(k => k[1]),
-                            backgroundColor: colors,
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        cutout: '65%'
-                    }
-                });
-
-                // 2. Bar Chart
-                const tahunEntries = Object.entries(chartData.byTahun)
-                    .filter(t => t[0] !== 'Unknown' && !isNaN(t[0]))
-                    .sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Top Navbar -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shadow-sm z-10">
+            <div class="flex items-center gap-4">
+                <!-- Hamburger Menu Mobile -->
+                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 focus:outline-none md:hidden p-2 rounded-md hover:bg-slate-100">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
                 
-                if(barInst.current) barInst.current.destroy();
-                barInst.current = new Chart(barRef.current, {
-                    type: 'bar',
-                    data: {
-                        labels: tahunEntries.map(t => t[0]),
-                        datasets: [{
-                            label: 'Stok',
-                            data: tahunEntries.map(t => t[1]),
-                            backgroundColor: '#2563eb',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { 
-                            y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' }, border: {display: false}, ticks: {font:{size:10}} },
-                            x: { grid: { display: false }, border: {display: false}, ticks: {font:{size:10}, maxTicksLimit: 7} }
-                        }
-                    }
-                });
-            }, [chartData]);
-
-            // Top Penulis Custom Component
-            const topPenulis = Object.entries(chartData.byPenulis)
-                .sort((a,b)=>b[1]-a[1]).slice(0, 5);
-            const maxPenulisStok = topPenulis.length > 0 ? topPenulis[0][1] : 1;
-
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    {/* Donut Chart */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800">
-                        <h3 className="text-sm font-semibold mb-4 dark:text-white">Stok per Kategori</h3>
-                        <div className="flex items-center h-48">
-                            <div className="w-1/2 h-full relative"><canvas ref={donutRef}></canvas></div>
-                            <div className="w-1/2 pl-4 space-y-2 overflow-y-auto max-h-full custom-scrollbar">
-                                {Object.entries(chartData.byKategori).sort((a,b)=>b[1]-a[1]).slice(0,7).map((entry, i) => (
-                                    <div key={i} className="flex justify-between items-center text-xs">
-                                        <div className="flex items-center truncate mr-2">
-                                            <span className="w-2.5 h-2.5 rounded-full mr-2 shrink-0" style={{backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#0ea5e9', '#94a3b8'][i]}}></span>
-                                            <span className="text-slate-600 dark:text-slate-300 truncate">{entry[0]}</span>
-                                        </div>
-                                        <span className="font-medium text-slate-800 dark:text-slate-200">{entry[1].toLocaleString()}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bar Chart */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800">
-                        <h3 className="text-sm font-semibold mb-4 dark:text-white">Stok per Tahun</h3>
-                        <div className="h-48 w-full"><canvas ref={barRef}></canvas></div>
-                    </div>
-
-                    {/* Top Penulis */}
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm font-semibold dark:text-white">Top Penulis <span className="text-[10px] text-slate-400 font-normal">(Stok Terbanyak)</span></h3>
-                        </div>
-                        <div className="space-y-4">
-                            {topPenulis.map((p, i) => (
-                                <div key={i} className="flex items-center text-sm">
-                                    <span className="w-32 truncate text-slate-600 dark:text-slate-300 mr-3">{p[0]}</span>
-                                    <div className="flex-1 h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-500 rounded-full" style={{width: `${(p[1]/maxPenulisStok)*100}%`}}></div>
-                                    </div>
-                                    <span className="w-12 text-right font-medium text-slate-800 dark:text-slate-200 ml-3">{p[1].toLocaleString()}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="text-blue-600 text-xs font-medium mt-4 flex items-center hover:underline">
-                            Lihat semua <Icon name="arrow_forward" className="text-[14px] ml-1" />
-                        </button>
-                    </div>
+                <!-- Search Bar -->
+                <div class="relative hidden sm:block">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="globalSearch" placeholder="Cari menu atau data..." 
+                           class="pl-10 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all w-64 focus:w-80 outline-none">
                 </div>
-            );
-        };
+            </div>
 
-        const MainTableArea = () => {
-            const { rawData, headers, stats } = useContext(AppContext);
-            const [page, setPage] = useState(1);
-            const rowsPerPage = 5;
+            <!-- Top Right Icons -->
+            <div class="flex items-center gap-3 md:gap-5">
+                <button class="text-slate-400 hover:text-primary transition relative">
+                    <i class="fa-regular fa-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white text-[9px] text-white flex items-center justify-center font-bold">3</span>
+                </button>
+            </div>
+        </header>
 
-            // Mapping Headers (to match image columns exactly if they exist)
-            const getCol = (row, ...possibleKeys) => {
-                for (let k of possibleKeys) {
-                    if (row[k] !== undefined) return row[k];
-                    // check case insensitive
-                    const found = Object.keys(row).find(key => key.toLowerCase() === k.toLowerCase());
-                    if (found) return row[found];
-                }
-                return "-";
-            };
-
-            const tableData = useMemo(() => {
-                return rawData.map(row => ({
-                    kode: getCol(row, 'Kode', 'Kode Barang', 'ISBN'),
-                    judul: getCol(row, 'Judul', 'Judul Buku', 'Nama Barang'),
-                    penulis: getCol(row, 'Penulis', 'Pengarang'),
-                    kategori: getCol(row, 'Kategori', 'Genre'),
-                    penerbit: getCol(row, 'Penerbit'),
-                    tahun: getCol(row, 'Tahun', 'Tahun Terbit'),
-                    stok: parseInt(getCol(row, 'Stok', 'Qty')) || 0,
-                    lokasi: getCol(row, 'Lokasi', 'Rak', 'Gudang'),
-                    harga: getCol(row, 'Harga', 'Harga Jual')
-                }));
-            }, [rawData]);
-
-            const paginatedData = tableData.slice((page-1)*rowsPerPage, page*rowsPerPage);
-            const totalPages = Math.ceil(tableData.length / rowsPerPage) || 1;
-
-            return (
-                <div className="flex flex-col lg:flex-row gap-6 mb-6">
-                    {/* Left: Table Component */}
-                    <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 overflow-hidden flex flex-col">
-                        {/* Toolbar */}
-                        <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex flex-wrap justify-between items-center gap-3">
-                            <h2 className="font-semibold text-slate-800 dark:text-white">Daftar Stok Barang</h2>
-                            <div className="flex items-center space-x-2">
-                                <button className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center hover:bg-gray-50 dark:hover:bg-slate-800">
-                                    <Icon name="filter_list" className="mr-1.5 text-[16px]" /> Filter
-                                </button>
-                                <button className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center hover:bg-gray-50 dark:hover:bg-slate-800">
-                                    <Icon name="view_column" className="mr-1.5 text-[16px]" /> Tampilan <Icon name="expand_more" className="ml-1 text-[16px]" />
-                                </button>
-                                <button className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center hover:bg-gray-50 dark:hover:bg-slate-800">
-                                    <Icon name="download" className="mr-1.5 text-[16px]" /> Export <Icon name="expand_more" className="ml-1 text-[16px]" />
-                                </button>
-                                <div className="relative">
-                                    <Icon name="search" className="absolute left-2 top-1.5 text-slate-400 text-[16px]" />
-                                    <input type="text" placeholder="Cari..." className="pl-7 pr-3 py-1.5 text-xs border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-800 outline-none focus:border-blue-500 w-40 dark:text-white" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Table */}
-                        <div className="overflow-x-auto flex-1">
-                            <table className="w-full text-left text-sm whitespace-nowrap">
-                                <thead className="bg-gray-50/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-medium">
-                                    <tr>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Kode <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Judul <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Penulis <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Kategori <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Penerbit <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Tahun <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Stok <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Lokasi <Icon name="unfold_more" className="text-[14px] align-middle"/></th>
-                                        <th className="px-4 py-3 cursor-pointer hover:text-slate-700 dark:hover:text-slate-200">Harga</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60">
-                                    {paginatedData.map((row, i) => (
-                                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{row.kode}</td>
-                                            <td className="px-4 py-3 text-slate-800 dark:text-slate-200">{row.judul}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.penulis}</td>
-                                            <td className="px-4 py-3"><Badge text={row.kategori} /></td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.penerbit}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.tahun}</td>
-                                            <td className="px-4 py-3 font-semibold text-center">
-                                                <span className={`px-2 py-0.5 rounded text-xs ${row.stok > 10 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : row.stok > 0 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                    {row.stok}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.lokasi}</td>
-                                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{String(row.harga).includes('Rp') ? row.harga : `Rp ${row.harga}`}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination Footer */}
-                        <div className="p-4 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
-                            <p className="text-xs text-slate-500">Menampilkan {(page-1)*rowsPerPage + 1} sampai {Math.min(page*rowsPerPage, tableData.length)} dari {tableData.length.toLocaleString()} data</p>
-                            <div className="flex items-center space-x-1">
-                                <button disabled={page===1} onClick={()=>setPage(page-1)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 text-slate-500 disabled:opacity-50"><Icon name="chevron_left"/></button>
-                                {[1,2,3,4].map(p => (
-                                    <button key={p} onClick={()=>setPage(p)} className={`w-7 h-7 rounded text-xs font-medium flex items-center justify-center ${page === p ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
-                                        {p}
-                                    </button>
-                                ))}
-                                <span className="text-slate-400 text-xs px-1">...</span>
-                                <button onClick={()=>setPage(totalPages)} className="w-9 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-center">{totalPages}</button>
-                                <button disabled={page===totalPages} onClick={()=>setPage(page+1)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 text-slate-500 disabled:opacity-50"><Icon name="chevron_right"/></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right: Filters & Activity */}
-                    <div className="w-full lg:w-72 flex flex-col space-y-6">
-                        {/* Filter Panel */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 p-5">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-semibold text-sm dark:text-white">Filter Cepat</h3>
-                                <button className="text-[11px] text-blue-600 hover:underline">Reset</button>
-                            </div>
-                            <div className="space-y-3">
-                                {['Kategori', 'Tahun', 'Gudang', 'Stok'].map((lbl, i) => (
-                                    <div key={i} className="flex items-center justify-between">
-                                        <span className="text-xs text-slate-600 dark:text-slate-400 w-16">{lbl}</span>
-                                        <div className="flex-1 ml-2 relative">
-                                            <select className="w-full appearance-none bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md py-1.5 pl-3 pr-8 text-xs outline-none focus:border-blue-500 dark:text-slate-200">
-                                                <option>Semua</option>
-                                            </select>
-                                            <Icon name="expand_more" className="absolute right-2 top-1.5 text-slate-400 text-[16px] pointer-events-none" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-4">
-                                <span className="px-2 py-1 rounded border border-red-200 bg-red-50 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 text-[10px] font-medium cursor-pointer hover:bg-red-100 transition-colors">Stok Habis</span>
-                                <span className="px-2 py-1 rounded border border-amber-200 bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400 text-[10px] font-medium cursor-pointer hover:bg-amber-100 transition-colors">Stok Sedikit</span>
-                                <span className="px-2 py-1 rounded border border-green-200 bg-green-50 text-green-600 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 text-[10px] font-medium cursor-pointer hover:bg-green-100 transition-colors">Stok Banyak</span>
-                            </div>
-                        </div>
-
-                        {/* Activity Panel */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 p-5 flex-1">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-semibold text-sm dark:text-white">Aktivitas Terakhir</h3>
-                                <button className="text-[11px] text-blue-600 hover:underline">Lihat semua</button>
-                            </div>
-                            <div className="space-y-4 relative before:absolute before:inset-y-0 before:left-[11px] before:w-px before:bg-gray-200 dark:before:bg-slate-700">
-                                <div className="relative flex gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0 z-10 outline outline-4 outline-white dark:outline-slate-900">
-                                        <Icon name="check_circle" className="text-[14px] text-emerald-600 dark:text-emerald-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-800 dark:text-slate-200">Data berhasil dimuat dari Google Sheets</p>
-                                        <p className="text-[10px] text-slate-400">10 menit yang lalu</p>
-                                    </div>
-                                </div>
-                                <div className="relative flex gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 z-10 outline outline-4 outline-white dark:outline-slate-900">
-                                        <Icon name="sync" className="text-[14px] text-blue-600 dark:text-blue-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-800 dark:text-slate-200">Data diperbarui otomatis</p>
-                                        <p className="text-[10px] text-slate-400">30 menit yang lalu</p>
-                                    </div>
-                                </div>
-                                <div className="relative flex gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0 z-10 outline outline-4 outline-white dark:outline-slate-900">
-                                        <Icon name="description" className="text-[14px] text-indigo-600 dark:text-indigo-400" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-800 dark:text-slate-200">Export data Excel</p>
-                                        <p className="text-[10px] text-slate-400">1 jam yang lalu</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const BottomCards = () => {
-            const { stats, darkMode, toggleDarkMode } = useContext(AppContext);
+        <!-- Pages Container -->
+        <div class="flex-1 overflow-hidden p-4 md:p-6 bg-slate-50/50">
             
-            return (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-                    {/* Total Data with Sparkline */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 relative overflow-hidden">
-                        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Total Data</p>
-                        <p className="text-2xl font-bold text-slate-800 dark:text-white leading-none">{stats.totalJudul.toLocaleString()}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">Barang</p>
-                        {/* Fake SVG Sparkline matching image */}
-                        <svg className="absolute bottom-4 right-4 w-20 h-10 stroke-emerald-500 fill-none" viewBox="0 0 100 30" preserveAspectRatio="none">
-                            <path d="M0,25 C10,15 20,28 30,15 C40,5 50,20 60,10 C70,0 80,15 100,5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+            <!-- MENU 1: SPREADSHEET (ACTIVE) -->
+            <div id="menu1" class="menu-content active flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200">
+                <!-- Header Card & Actions -->
+                <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-xl">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Laporan Database Eksternal</h2>
+                        <p class="text-sm text-slate-500">Live data tersinkronisasi otomatis dari Google Sheets.</p>
                     </div>
-
-                    {/* Ekspor Cepat */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 text-center">
-                        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-3">Ekspor Cepat</p>
-                        <div className="flex justify-center space-x-3">
-                            <button className="flex flex-col items-center group">
-                                <div className="w-8 h-8 bg-green-100 text-green-600 rounded flex items-center justify-center mb-1 group-hover:bg-green-200 transition-colors"><Icon name="grid_on" className="text-lg"/></div>
-                                <span className="text-[9px] text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-300">Excel</span>
-                            </button>
-                            <button className="flex flex-col items-center group">
-                                <div className="w-8 h-8 bg-red-100 text-red-600 rounded flex items-center justify-center mb-1 group-hover:bg-red-200 transition-colors"><Icon name="picture_as_pdf" className="text-lg"/></div>
-                                <span className="text-[9px] text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-300">PDF</span>
-                            </button>
-                            <button className="flex flex-col items-center group">
-                                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded flex items-center justify-center mb-1 group-hover:bg-blue-200 transition-colors"><Icon name="print" className="text-lg"/></div>
-                                <span className="text-[9px] text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-300">Print</span>
-                            </button>
-                            <button className="flex flex-col items-center group">
-                                <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded flex items-center justify-center mb-1 group-hover:bg-purple-200 transition-colors"><Icon name="data_object" className="text-lg"/></div>
-                                <span className="text-[9px] text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-300">CSV</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Lookup Massal */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800">
-                        <div className="flex items-start mb-2">
-                            <div className="w-8 h-8 bg-blue-50 dark:bg-slate-800 text-blue-600 rounded flex items-center justify-center mr-3 shrink-0"><Icon name="cloud_upload" /></div>
-                            <div>
-                                <h4 className="text-xs font-semibold text-slate-800 dark:text-white">Lookup Massal</h4>
-                                <p className="text-[9px] text-slate-500 leading-tight mt-0.5">Lengkapi data dengan cepat menggunakan Excel</p>
-                            </div>
-                        </div>
-                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium py-1.5 rounded mt-2 transition-colors">Mulai Sekarang</button>
-                    </div>
-
-                    {/* Katalog Otomatis */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800">
-                        <div className="flex items-start mb-2">
-                            <div className="w-8 h-8 bg-purple-50 dark:bg-slate-800 text-purple-600 rounded flex items-center justify-center mr-3 shrink-0"><Icon name="menu_book" /></div>
-                            <div>
-                                <h4 className="text-xs font-semibold text-slate-800 dark:text-white">Katalog Otomatis</h4>
-                                <p className="text-[9px] text-slate-500 leading-tight mt-0.5">Buat katalog berdasarkan kategori pilihan</p>
-                            </div>
-                        </div>
-                        <button className="w-full bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-medium py-1.5 rounded mt-2 transition-colors">Buat Katalog</button>
-                    </div>
-
-                    {/* Bahasa & Tema */}
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-soft border border-gray-100 dark:border-slate-800 flex flex-col justify-between">
-                        <h4 className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2">Bahasa & Tema</h4>
-                        <div className="flex bg-gray-100 dark:bg-slate-800 rounded p-0.5 mb-2">
-                            <button onClick={()=>!darkMode && toggleDarkMode()} className={`flex-1 text-[10px] font-medium py-1 rounded transition-colors ${!darkMode ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500'}`}>Light</button>
-                            <button onClick={()=>darkMode && toggleDarkMode()} className={`flex-1 text-[10px] font-medium py-1 rounded transition-colors ${darkMode ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500'}`}>Dark</button>
-                        </div>
-                        <div className="relative">
-                            <select className="w-full appearance-none bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded py-1 pl-2 pr-6 text-[10px] outline-none dark:text-slate-200">
-                                <option>ID - Indonesia</option>
-                                <option>EN - English</option>
-                            </select>
-                            <Icon name="expand_more" className="absolute right-1 top-1 text-slate-400 text-[14px] pointer-events-none" />
-                        </div>
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNytEIPOgOKWAEe2VAv1Ec1vKNbyZMP5RqSJuuH4_T1JaCE9xBDHLFBhWJ9-SZcA/pubhtml" 
+                           target="_blank" 
+                           class="flex-1 sm:flex-none text-center px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
+                            <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Buka di Sheet
+                        </a>
+                        <!-- Download link generated by replacing pubhtml with pub?output=xlsx -->
+                        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNytEIPOgOKWAEe2VAv1Ec1vKNbyZMP5RqSJuuH4_T1JaCE9xBDHLFBhWJ9-SZcA/pub?output=xlsx" 
+                           class="flex-1 sm:flex-none text-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700 transition-colors">
+                            <i class="fa-regular fa-file-excel mr-2"></i>Download Excel
+                        </a>
                     </div>
                 </div>
-            );
-        };
 
-        const Footer = () => (
-            <footer className="mt-auto py-4 border-t border-gray-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
-                <p>&copy; 2026 Stok Buku - Dashboard Stok Profesional</p>
-                <div className="flex items-center mt-2 sm:mt-0">
-                    <span>Data selalu mengikuti Google Sheets</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 ml-2 animate-pulse"></span>
+                <!-- Iframe Container (Full Height) -->
+                <!-- Penambahan parameter widget=true&headers=false agar sheet tab di bawah terbaca sempurna -->
+                <div class="flex-1 relative w-full h-full bg-slate-100 rounded-b-xl overflow-hidden">
+                    <iframe 
+                        src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRNytEIPOgOKWAEe2VAv1Ec1vKNbyZMP5RqSJuuH4_T1JaCE9xBDHLFBhWJ9-SZcA/pubhtml?widget=true&amp;headers=false" 
+                        class="absolute inset-0 w-full h-full border-none"
+                        title="Google Spreadsheet Data">
+                    </iframe>
                 </div>
-            </footer>
-        );
+            </div>
 
-        // ==========================================
-        // 5. MAIN APP COMPONENT
-        // ==========================================
-        const App = () => {
-            return (
-                <AppProvider>
-                    <div className="flex h-screen overflow-hidden bg-[#f8fafc] dark:bg-[#0f172a] text-slate-800 dark:text-slate-200 selection:bg-blue-200 selection:text-blue-900">
-                        <Sidebar />
-                        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-                            <Header />
-                            <main className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-                                <div className="max-w-screen-2xl mx-auto flex flex-col h-full">
-                                    <StatsRow />
-                                    <ChartsRow />
-                                    <MainTableArea />
-                                    <BottomCards />
-                                    <Footer />
-                                </div>
-                            </main>
-                        </div>
-                    </div>
-                </AppProvider>
-            );
-        };
+            <!-- MENU 2-10: PLACEHOLDERS -->
+            <div id="menu2" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center">
+                <i class="fa-solid fa-chart-line text-6xl text-slate-200 mb-4"></i>
+                <h2 class="text-2xl font-bold text-slate-400">Modul Analisis Data</h2>
+                <p class="text-slate-500">Halaman ini belum diisi konten.</p>
+            </div>
+            
+            <div id="menu3" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center">
+                <h2 class="text-2xl font-bold text-slate-400">Manajemen Klien</h2>
+            </div>
+            <!-- Untuk efisiensi, menu 4 hingga 10 memiliki struktur empty state serupa -->
+            <div id="menu4" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Inventaris</h2></div>
+            <div id="menu5" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Keuangan</h2></div>
+            <div id="menu6" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Jadwal & Tugas</h2></div>
+            <div id="menu7" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Pesan Masuk</h2></div>
+            <div id="menu8" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Kampanye</h2></div>
+            <div id="menu9" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Pengaturan Dashboard</h2></div>
+            <div id="menu10" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Pusat Bantuan</h2></div>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        </div>
+    </main>
+
+    <!-- Javascript Logic -->
+    <script>
+        // SPA Hash Map Navigation Logic
+        function switchTab(menuId, element) {
+            // 1. Hide all contents
+            const contents = document.querySelectorAll('.menu-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 2. Show selected content
+            document.getElementById(menuId).classList.add('active');
+
+            // 3. Reset all nav item styles
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('bg-primary', 'text-white');
+                item.classList.add('hover:bg-slate-800', 'hover:text-white');
+            });
+
+            // 4. Set active nav item styles
+            element.classList.remove('hover:bg-slate-800', 'hover:text-white');
+            element.classList.add('bg-primary', 'text-white');
+
+            // 5. Close sidebar on mobile after clicking
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+        }
+
+        // Sidebar Toggle Logic untuk Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                overlay.classList.add('hidden');
+            } else {
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        // Global Search Simulation
+        document.getElementById('globalSearch').addEventListener('input', function(e) {
+            let val = e.target.value.toLowerCase();
+            const navItems = document.querySelectorAll('.nav-item span');
+            
+            navItems.forEach(span => {
+                let text = span.innerText.toLowerCase();
+                if(text.includes(val)) {
+                    span.parentElement.parentElement.style.display = 'block';
+                } else {
+                    span.parentElement.parentElement.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>
