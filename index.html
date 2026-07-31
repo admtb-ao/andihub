@@ -51,7 +51,7 @@
            TEMA LIGHT MODE (MODE TERANG) OVERRIDES
            ------------------------------------------- */
         body.light-mode {
-            background-color: #f1f5f9; /* Tailwind slate-100 */
+            background-color: #f1f5f9;
             color: #0f172a;
         }
         body.light-mode .bg-panel { background-color: rgba(255, 255, 255, 0.85); }
@@ -234,7 +234,6 @@
 
         <!-- Bottom Icon (THEME TOGGLE) -->
         <div class="pb-2">
-            <!-- Berfungsi sebagai tombol ganti mode terang/gelap -->
             <button onclick="toggleTheme()" class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-accent transition">
                 <i id="theme-icon" class="fa-regular fa-sun text-2xl"></i>
             </button>
@@ -270,10 +269,10 @@
         <!-- LAYOUT: CENTER + RIGHT -->
         <div class="relative z-10 flex flex-col lg:flex-row gap-6 h-[calc(100%-5rem)] xl:h-[calc(100%-6rem)]">
             
-            <!-- CENTER AREA: Menampilkan Visual -->
+            <!-- CENTER AREA -->
             <div class="flex-[1.5] relative rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-panel">
                 
-                <!-- LAYER 0: HOME (Gambar Mansion) -->
+                <!-- LAYER 0: HOME -->
                 <div id="view-home" class="view-layer active">
                     <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover" alt="Mansion">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
@@ -326,7 +325,6 @@
                         </div>
                     </div>
                     <div class="flex-1 w-full relative">
-                        <!-- Iframe Lookup -->
                         <iframe src="https://lookupdata-gramedia.vercel.app/" class="absolute inset-0 w-full h-full border-none"></iframe>
                     </div>
                 </div>
@@ -438,21 +436,62 @@
     <!-- Logic Javascript -->
     <script>
         // ====================================================================
-        // KONFIGURASI DATABASE MENU (SILAKAN EDIT LINK EXCEL DI BAWAH INI NANTI)
+        // PENGATURAN LINK SATU PER SATU UNTUK MASING-MASING MENU (SILAKAN DIEDIT)
         // ====================================================================
-        const excelSharePointLink = "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ";
-        
         const menuData = {
-            1: { type: 'lookup' }, // Punya view khusus
-            2: { title: "ID ORIN GRAMEDIA X KODE BSOFT", type: 'excel', link: excelSharePointLink, icon: "fa-address-book", iconBg: "bg-[#245e69]/20", iconColor: "text-[#5bc9d9]" },
-            3: { title: "Report Stock Status Gramedia (GAM)", type: 'excel', link: excelSharePointLink, icon: "fa-box", iconBg: "bg-orange-500/20", iconColor: "text-orange-400" },
-            4: { title: "Rekap STO Gramedia", type: 'excel', link: excelSharePointLink, icon: "fa-layer-group", iconBg: "bg-[#393469]/20", iconColor: "text-[#9b94e8]" },
-            5: { title: "Rekap RO Gramedia 2026", type: 'excel', link: excelSharePointLink, icon: "fa-chart-column", iconBg: "bg-[#6b2c4c]/20", iconColor: "text-[#e87cb5]" },
-            6: { title: "E-Catalog Penawaran Gramedia", type: 'excel', link: excelSharePointLink, icon: "fa-book-open", iconBg: "bg-[#215c42]/20", iconColor: "text-[#61e8a9]" },
-            7: { title: "DATA TOKO GRAMEDIA", type: 'excel', link: excelSharePointLink, icon: "fa-building", iconBg: "bg-[#23587a]/20", iconColor: "text-[#61bde8]" },
-            8: { title: "Laku Jual Gramedia 2026 (GAM)", type: 'excel', link: excelSharePointLink, icon: "fa-sack-dollar", iconBg: "bg-[#735e16]/20", iconColor: "text-[#e8c643]" },
-            9: { title: "Consigment Advice Per Store 2026 (GAM)", type: 'excel', link: excelSharePointLink, icon: "fa-money-bill-wave", iconBg: "bg-[#1d6b41]/20", iconColor: "text-[#55e896]" },
-            10: { type: 'coming-soon' } // Punya view khusus Break Room
+            1: { type: 'lookup' }, // Menu 1: Membuka web lookupdata-gramedia.vercel.app
+            
+            // Menu 2 s/d 9: Silakan ganti link SharePoint masing-masing di bawah ini
+            2: { 
+                title: "ID ORIN GRAMEDIA X KODE BSOFT", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-address-book", iconBg: "bg-[#245e69]/20", iconColor: "text-[#5bc9d9]" 
+            },
+            3: { 
+                title: "Report Stock Status Gramedia (GAM)", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-box", iconBg: "bg-orange-500/20", iconColor: "text-orange-400" 
+            },
+            4: { 
+                title: "Rekap STO Gramedia", 
+                type: 'excel', 
+                link: "https://1drv.ms/x/c/ba6cc96dfc7dbe16/IQCJ6Tc3NRwYQIt3eA3461ngASkv3FeSpcRW0UJBVm1dRIc?e=9CEyil", 
+                icon: "fa-layer-group", iconBg: "bg-[#393469]/20", iconColor: "text-[#9b94e8]" 
+            },
+            5: { 
+                title: "Rekap RO Gramedia 2026", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-chart-column", iconBg: "bg-[#6b2c4c]/20", iconColor: "text-[#e87cb5]" 
+            },
+            6: { 
+                title: "E-Catalog Penawaran Gramedia", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-book-open", iconBg: "bg-[#215c42]/20", iconColor: "text-[#61e8a9]" 
+            },
+            7: { 
+                title: "DATA TOKO GRAMEDIA", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-building", iconBg: "bg-[#23587a]/20", iconColor: "text-[#61bde8]" 
+            },
+            8: { 
+                title: "Laku Jual Gramedia 2026 (GAM)", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-sack-dollar", iconBg: "bg-[#735e16]/20", iconColor: "text-[#e8c643]" 
+            },
+            9: { 
+                title: "Consigment Advice Per Store 2026 (GAM)", 
+                type: 'excel', 
+                link: "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ", 
+                icon: "fa-money-bill-wave", iconBg: "bg-[#1d6b41]/20", iconColor: "text-[#55e896]" 
+            },
+            
+            10: { type: 'coming-soon' } // Menu 10: Tampilan Coming Soon
         };
         // ====================================================================
 
@@ -496,7 +535,7 @@
             homeBtn.classList.add('text-gray-400');
         }
 
-        // 3. FUNGSI MEMBUKA MENU DENGAN LOGIKA DINAMIS
+        // 3. FUNGSI MEMBUKA MENU DENGAN KONFIGURASI INDIVIDUAL
         function openMenu(index) {
             resetAllActiveStates();
             document.getElementById('right-panel').classList.add('hidden-panel'); // Sembunyikan panel kanan
@@ -513,26 +552,24 @@
             // Hapus View Sebelumnya
             document.querySelectorAll('.view-layer').forEach(layer => layer.classList.remove('active'));
             
-            // Logika Menampilkan Data sesuai Nomor Menu
+            // Ambil data konfigurasi menu berdasarkan index
             const data = menuData[index];
 
             if (data.type === 'lookup') {
-                // Tampilkan halaman khusus Web Lookup
                 document.getElementById('view-lookup').classList.add('active');
             
             } else if (data.type === 'coming-soon') {
-                // Tampilkan halaman khusus Break Room
                 document.getElementById('view-coming-soon').classList.add('active');
             
             } else if (data.type === 'excel') {
-                // Tampilkan Iframe Excel secara Dinamis (Update Kontennya via JS)
                 document.getElementById('view-excel').classList.add('active');
                 
+                // Masukkan teks, ikon, dan link spesifik milik menu tersebut
                 document.getElementById('excel-title').innerText = data.title;
                 document.getElementById('excel-icon').className = "fa-solid " + data.icon + " text-lg";
                 document.getElementById('excel-icon-box').className = "w-10 h-10 rounded-xl flex items-center justify-center " + data.iconBg + " " + data.iconColor;
                 
-                // Set Link URL ke Iframe dan Tombol
+                // Sinkronisasi link Excel per menu
                 document.getElementById('excel-iframe').src = data.link + "&action=embedview";
                 document.getElementById('excel-btn-fullscreen').href = data.link;
                 document.getElementById('excel-btn-download').href = data.link + "&download=1";
@@ -551,7 +588,7 @@
             homeBtn.classList.add('bg-white/10', 'text-white');
         }
 
-        // 5. TOGGLE MUNCULKAN/SEMBUNYIKAN MENU
+        // 5. TOGGLE MUNCULKAN/SEMBUNYIKAN MENU KANAN
         function toggleRightPanel() {
             const panel = document.getElementById('right-panel');
             if (panel.classList.contains('hidden-panel')) {
