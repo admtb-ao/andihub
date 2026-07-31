@@ -178,7 +178,7 @@
         <!-- 10 Menu Icons (With Tooltips) -->
         <div class="flex-1 w-full flex flex-col items-center gap-3 overflow-y-auto custom-scrollbar-left pb-4 pt-2 relative">
             
-            <!-- Menu 1-10 List (Same exactly as before, adjusted w-h for mobile) -->
+            <!-- Menu 1-10 List -->
             <div class="relative group flex items-center justify-center w-full">
                 <button id="left-btn-1" onclick="openMenu(1)" class="left-icon-btn w-9 h-9 md:w-11 md:h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-folder-open text-base md:text-lg"></i>
@@ -387,8 +387,8 @@
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Full Screen
                             </a>
                             
-                            <!-- TOMBOL DOWNLOAD DIPERBAIKI -->
-                            <a id="excel-btn-download" href="#" target="_blank" class="shrink-0 px-4 py-2 rounded-xl bg-accent hover:bg-accent/80 text-dark font-bold text-sm transition flex items-center gap-2 shadow-[0_0_15px_rgba(74,222,128,0.3)]">
+                            <!-- TOMBOL DOWNLOAD DIPERBAIKI (Ditambah properti download) -->
+                            <a id="excel-btn-download" href="#" target="_blank" download class="shrink-0 px-4 py-2 rounded-xl bg-accent hover:bg-accent/80 text-dark font-bold text-sm transition flex items-center gap-2 shadow-[0_0_15px_rgba(74,222,128,0.3)]">
                                 <i class="fa-solid fa-download"></i> Download
                             </a>
                         </div>
@@ -622,23 +622,21 @@
                 document.getElementById('excel-icon').className = "fa-solid " + data.icon + " text-lg";
                 document.getElementById('excel-icon-box').className = "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 " + data.iconBg + " " + data.iconColor;
                 
-                // Embed URL Setup
+                // Set link iframe dan full screen asli
                 document.getElementById('excel-iframe').src = data.link;
                 document.getElementById('excel-btn-fullscreen').href = data.link;
                 
                 // -------------------------------------------------------------
-                // PERBAIKAN LOGIKA TOMBOL DOWNLOAD EXCEL (REPLACE URL PARAMETER)
+                // PERBAIKAN LOGIKA TOMBOL DOWNLOAD EXCEL
+                // Kita harus menghapus semua parameter Microsoft (seperti em=2, wdHideGridlines, dll) 
+                // yang memaksa file terbuka di browser, lalu MENGGANTINYA murni dengan ?download=1
                 // -------------------------------------------------------------
-                let downloadUrl = data.link;
                 
-                // Ubah parameter 'em=2' (embed mode) menjadi 'download=1' secara paksa
-                if (downloadUrl.includes('em=2')) {
-                    downloadUrl = downloadUrl.replace('em=2', 'download=1');
-                } else if (downloadUrl.includes('?')) {
-                    downloadUrl += '&download=1';
-                } else {
-                    downloadUrl += '?download=1';
-                }
+                // Ambil link dasar HANYA sebelum tanda '?'
+                let baseUrl = data.link.split('?')[0]; 
+                
+                // Paksa Microsoft untuk mengunduhnya dengan murni menempelkan '?download=1'
+                let downloadUrl = baseUrl + "?download=1";
 
                 const downloadBtn = document.getElementById('excel-btn-download');
                 downloadBtn.href = downloadUrl;
