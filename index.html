@@ -60,64 +60,159 @@
             z-index: 10;
         }
 
-        /* Right Menu Hover Glow Effect */
+        /* Right Panel Hide/Show Animation */
+        #right-panel {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.4s ease;
+            width: 350px;
+            opacity: 1;
+        }
+        @media (max-width: 1280px) {
+            #right-panel { width: 320px; }
+        }
+        #right-panel.hidden-panel {
+            width: 0px !important;
+            opacity: 0;
+            margin-left: 0;
+            pointer-events: none;
+        }
+
+        /* Menu Button Styles */
         .report-menu-btn {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid transparent;
         }
         .report-menu-btn:hover, .report-menu-btn.active-menu {
-            background: rgba(74, 222, 128, 0.08); /* Latar hijau transparan */
+            background: rgba(74, 222, 128, 0.08);
             border-color: rgba(74, 222, 128, 0.4);
             box-shadow: 0 0 20px rgba(74, 222, 128, 0.25), inset 0 0 10px rgba(74, 222, 128, 0.1);
             transform: translateX(-4px);
         }
-        
-        .report-menu-btn:hover span, .report-menu-btn.active-menu span {
-            color: #ffffff;
+        .report-menu-btn:hover span, .report-menu-btn.active-menu span { color: #ffffff; }
+
+        /* Left Icon Active Glow */
+        .left-icon-btn { transition: all 0.2s ease; }
+        .left-icon-btn.active-left {
+            background-color: #4ade80 !important;
+            color: #121214 !important;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+            border-color: transparent !important;
         }
 
-        /* Custom Scrollbar for Right Menu */
+        /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        .custom-scrollbar-left::-webkit-scrollbar { display: none; } /* Hide scrollbar on left sidebar */
     </style>
 </head>
 <body class="h-screen flex text-sm">
 
-    <!-- LEFT SIDEBAR (MINIMIZED) -->
-    <aside class="w-[80px] h-full flex flex-col items-center py-8 border-r border-white/5 bg-panel/80 z-20 shrink-0 justify-between">
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-[80px] h-full flex flex-col items-center py-6 border-r border-white/5 bg-panel/90 z-40 shrink-0">
         
-        <!-- Top Icons -->
-        <div class="flex flex-col gap-6 w-full items-center">
+        <!-- Top Core Icons -->
+        <div class="flex flex-col gap-4 w-full items-center mb-4">
             <!-- Home Icon -->
-            <button onclick="switchView('home', null)" class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition border border-transparent hover:border-white/10">
+            <button id="left-home" onclick="goHome()" class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition border border-transparent hover:border-white/10">
                 <i class="fa-solid fa-house-chimney text-xl"></i>
             </button>
             
-            <!-- Apps Icon (Active Green) -->
-            <button class="w-12 h-12 flex items-center justify-center rounded-[18px] bg-accent text-dark shadow-[0_0_20px_rgba(74,222,128,0.4)] transition">
+            <!-- Apps Icon (Toggle Right Panel) -->
+            <button id="left-apps" onclick="toggleRightPanel()" class="w-12 h-12 flex items-center justify-center rounded-[18px] bg-accent text-dark shadow-[0_0_20px_rgba(74,222,128,0.4)] transition">
                 <i class="fa-solid fa-border-all text-xl"></i>
-            </button>
-
-            <!-- Document Icon -->
-            <button class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition border border-transparent hover:border-white/10">
-                <i class="fa-regular fa-file-lines text-xl"></i>
-            </button>
-
-            <!-- Location Icon -->
-            <button class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition border border-transparent hover:border-white/10">
-                <i class="fa-solid fa-location-dot text-xl"></i>
-            </button>
-
-            <!-- Wrench Icon -->
-            <button class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition border border-transparent hover:border-white/10">
-                <i class="fa-solid fa-wrench text-xl"></i>
             </button>
         </div>
 
+        <!-- Line Separator -->
+        <div class="w-8 h-[1px] bg-white/10 my-2"></div>
+
+        <!-- 10 Menu Icons (With Tooltips) -->
+        <div class="flex-1 w-full flex flex-col items-center gap-3 overflow-y-auto custom-scrollbar-left pb-4 pt-2 relative">
+            
+            <!-- 1 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-1" onclick="openMenu(1, 'LOOKUP DATA OTOMATIS', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-folder-open text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">LOOKUP DATA OTOMATIS</span>
+            </div>
+
+            <!-- 2 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-2" onclick="openMenu(2, 'ID ORIN GRAMEDIA X KODE BSOFT', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-address-book text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">ID ORIN GRAMEDIA X KODE BSOFT</span>
+            </div>
+
+            <!-- 3 (EXCEL) -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-3" onclick="openMenu(3, 'Report Stock Status Gramedia (GAM)', 'excel')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-box text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Report Stock Status Gramedia (GAM)</span>
+            </div>
+
+            <!-- 4 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-4" onclick="openMenu(4, 'Rekap STO Gramedia', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-layer-group text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Rekap STO Gramedia</span>
+            </div>
+
+            <!-- 5 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-5" onclick="openMenu(5, 'Rekap RO Gramedia 2026', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-chart-column text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Rekap RO Gramedia 2026</span>
+            </div>
+
+            <!-- 6 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-6" onclick="openMenu(6, 'E-Catalog Penawaran Gramedia', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-book-open text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">E-Catalog Penawaran Gramedia</span>
+            </div>
+
+            <!-- 7 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-7" onclick="openMenu(7, 'DATA TOKO GRAMEDIA', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-building text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">DATA TOKO GRAMEDIA</span>
+            </div>
+
+            <!-- 8 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-8" onclick="openMenu(8, 'Laku Jual Gramedia 2026 (GAM)', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-sack-dollar text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Laku Jual Gramedia 2026 (GAM)</span>
+            </div>
+
+            <!-- 9 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-9" onclick="openMenu(9, 'Consigment Advice Per Store 2026 (GAM)', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-money-bill-wave text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Consigment Advice Per Store 2026 (GAM)</span>
+            </div>
+
+            <!-- 10 -->
+            <div class="relative group flex items-center justify-center w-full">
+                <button id="left-btn-10" onclick="openMenu(10, 'BREAK ROOM', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-mug-hot text-lg"></i>
+                </button>
+                <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">BREAK ROOM</span>
+            </div>
+        </div>
+
         <!-- Bottom Icon -->
-        <div>
+        <div class="pt-2">
             <button class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-500 hover:text-white hover:bg-white/10 transition">
                 <i class="fa-regular fa-sun text-xl"></i>
             </button>
@@ -167,7 +262,6 @@
                             <p class="text-gray-200 text-sm drop-shadow-md">Manage your daily operations efficiently.</p>
                         </div>
 
-                        <!-- Indikator Status -->
                         <div class="glass-panel rounded-2xl p-4 flex gap-6 w-fit items-center border border-white/10 shadow-lg">
                             <div class="flex items-center gap-4 pr-6 border-r border-white/10">
                                 <i class="fa-solid fa-wifi text-gray-400"></i>
@@ -189,9 +283,8 @@
                     </div>
                 </div>
 
-                <!-- LAYER 2: EXCEL ONLINE (Report Stock Status Gramedia) -->
+                <!-- LAYER 2: EXCEL ONLINE -->
                 <div id="view-excel" class="view-layer flex flex-col bg-white">
-                    <!-- Kaca Header untuk Excel -->
                     <div class="px-6 py-4 flex justify-between items-center bg-panel border-b border-white/10 shrink-0">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
@@ -203,6 +296,9 @@
                             </div>
                         </div>
                         <div class="flex gap-3">
+                            <button onclick="toggleRightPanel()" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
+                                <i class="fa-solid fa-list-ul"></i> Menu Laporan
+                            </button>
                             <a href="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ" target="_blank" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Full Screen
                             </a>
@@ -221,9 +317,14 @@
                     </div>
                 </div>
 
-                <!-- LAYER 3: PLACEHOLDER (Untuk menu yang belum ada datanya) -->
+                <!-- LAYER 3: PLACEHOLDER (Menu Belum Ada Data) -->
                 <div id="view-placeholder" class="view-layer flex items-center justify-center bg-panel">
-                    <div class="text-center max-w-sm">
+                    <div class="text-center max-w-sm relative">
+                        <!-- Tombol Buka Menu Kanan (Muncul jika menu disembunyikan) -->
+                        <button onclick="toggleRightPanel()" class="absolute -top-16 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm flex items-center gap-2 transition">
+                            <i class="fa-solid fa-list-ul"></i> Buka Menu Laporan
+                        </button>
+
                         <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 border border-white/10">
                             <i class="fa-solid fa-link-slash text-3xl text-gray-500"></i>
                         </div>
@@ -233,92 +334,61 @@
                 </div>
             </div>
 
-            <!-- RIGHT SIDEBAR: 10 MENU DAFTAR LAPORAN -->
-            <div class="w-[320px] xl:w-[350px] shrink-0 flex flex-col gap-2 overflow-y-auto pr-2 pb-6 custom-scrollbar">
+            <!-- RIGHT PANEL: 10 MENU DAFTAR LAPORAN (Bisa Ter-Hide) -->
+            <div id="right-panel" class="shrink-0 flex flex-col gap-2 overflow-y-auto pr-2 pb-6 custom-scrollbar">
                 
-                <!-- 1 -->
-                <button onclick="switchView('placeholder', this, 'LOOKUP DATA OTOMATIS')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#2b4c7e]/80 flex items-center justify-center text-[#7ba5e8] shrink-0">
-                        <i class="fa-solid fa-folder-open text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">LOOKUP DATA OTOMATIS</span>
+                <button id="right-btn-1" onclick="openMenu(1, 'LOOKUP DATA OTOMATIS', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#2b4c7e]/80 flex items-center justify-center text-[#7ba5e8] shrink-0"><i class="fa-solid fa-folder-open text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">LOOKUP DATA OTOMATIS</span>
                 </button>
 
-                <!-- 2 -->
-                <button onclick="switchView('placeholder', this, 'ID ORIN GRAMEDIA X KODE BSOFT')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#245e69]/80 flex items-center justify-center text-[#5bc9d9] shrink-0">
-                        <i class="fa-solid fa-address-book text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">ID ORIN GRAMEDIA X KODE BSOFT</span>
+                <button id="right-btn-2" onclick="openMenu(2, 'ID ORIN GRAMEDIA X KODE BSOFT', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#245e69]/80 flex items-center justify-center text-[#5bc9d9] shrink-0"><i class="fa-solid fa-address-book text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">ID ORIN GRAMEDIA X KODE BSOFT</span>
                 </button>
 
-                <!-- 3 (TRIGGER EXCEL) -->
-                <button onclick="switchView('excel', this, null)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#8c5220]/80 flex items-center justify-center text-[#e89c61] shrink-0">
-                        <i class="fa-solid fa-box text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">Report Stock Status Gramedia (GAM)</span>
+                <!-- TRIGGER EXCEL -->
+                <button id="right-btn-3" onclick="openMenu(3, 'Report Stock Status Gramedia (GAM)', 'excel')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#8c5220]/80 flex items-center justify-center text-[#e89c61] shrink-0"><i class="fa-solid fa-box text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Report Stock Status Gramedia (GAM)</span>
                 </button>
 
-                <!-- 4 -->
-                <button onclick="switchView('placeholder', this, 'Rekap STO Gramedia')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#393469]/80 flex items-center justify-center text-[#9b94e8] shrink-0">
-                        <i class="fa-solid fa-layer-group text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">Rekap STO Gramedia</span>
+                <button id="right-btn-4" onclick="openMenu(4, 'Rekap STO Gramedia', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#393469]/80 flex items-center justify-center text-[#9b94e8] shrink-0"><i class="fa-solid fa-layer-group text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Rekap STO Gramedia</span>
                 </button>
 
-                <!-- 5 -->
-                <button onclick="switchView('placeholder', this, 'Rekap RO Gramedia 2026')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#6b2c4c]/80 flex items-center justify-center text-[#e87cb5] shrink-0">
-                        <i class="fa-solid fa-chart-column text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">Rekap RO Gramedia 2026</span>
+                <button id="right-btn-5" onclick="openMenu(5, 'Rekap RO Gramedia 2026', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#6b2c4c]/80 flex items-center justify-center text-[#e87cb5] shrink-0"><i class="fa-solid fa-chart-column text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Rekap RO Gramedia 2026</span>
                 </button>
 
-                <!-- 6 -->
-                <button onclick="switchView('placeholder', this, 'E-Catalog Penawaran Gramedia')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#215c42]/80 flex items-center justify-center text-[#61e8a9] shrink-0">
-                        <i class="fa-solid fa-book-open text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">E-Catalog Penawaran Gramedia</span>
+                <button id="right-btn-6" onclick="openMenu(6, 'E-Catalog Penawaran Gramedia', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#215c42]/80 flex items-center justify-center text-[#61e8a9] shrink-0"><i class="fa-solid fa-book-open text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">E-Catalog Penawaran Gramedia</span>
                 </button>
 
-                <!-- 7 -->
-                <button onclick="switchView('placeholder', this, 'DATA TOKO GRAMEDIA')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#23587a]/80 flex items-center justify-center text-[#61bde8] shrink-0">
-                        <i class="fa-solid fa-building text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">DATA TOKO GRAMEDIA</span>
+                <button id="right-btn-7" onclick="openMenu(7, 'DATA TOKO GRAMEDIA', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#23587a]/80 flex items-center justify-center text-[#61bde8] shrink-0"><i class="fa-solid fa-building text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">DATA TOKO GRAMEDIA</span>
                 </button>
 
-                <!-- 8 -->
-                <button onclick="switchView('placeholder', this, 'Laku Jual Gramedia 2026 (GAM)')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#735e16]/80 flex items-center justify-center text-[#e8c643] shrink-0">
-                        <i class="fa-solid fa-sack-dollar text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">Laku Jual Gramedia 2026 (GAM)</span>
+                <button id="right-btn-8" onclick="openMenu(8, 'Laku Jual Gramedia 2026 (GAM)', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#735e16]/80 flex items-center justify-center text-[#e8c643] shrink-0"><i class="fa-solid fa-sack-dollar text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Laku Jual Gramedia 2026 (GAM)</span>
                 </button>
 
-                <!-- 9 -->
-                <button onclick="switchView('placeholder', this, 'Consigment Advice Per Store 2026 (GAM)')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#1d6b41]/80 flex items-center justify-center text-[#55e896] shrink-0">
-                        <i class="fa-solid fa-money-bill-wave text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">Consigment Advice Per Store 2026 (GAM)</span>
+                <button id="right-btn-9" onclick="openMenu(9, 'Consigment Advice Per Store 2026 (GAM)', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#1d6b41]/80 flex items-center justify-center text-[#55e896] shrink-0"><i class="fa-solid fa-money-bill-wave text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Consigment Advice Per Store 2026 (GAM)</span>
                 </button>
 
-                <!-- Line Separator -->
                 <div class="h-[1px] bg-white/10 my-1 mx-2"></div>
 
-                <!-- 10 -->
-                <button onclick="switchView('placeholder', this, 'BREAK ROOM')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
-                    <div class="w-10 h-10 rounded-xl bg-[#6e2c33]/80 flex items-center justify-center text-[#e8707e] shrink-0">
-                        <i class="fa-solid fa-mug-hot text-lg"></i>
-                    </div>
-                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug">BREAK ROOM</span>
+                <button id="right-btn-10" onclick="openMenu(10, 'BREAK ROOM', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                    <div class="w-10 h-10 rounded-xl bg-[#6e2c33]/80 flex items-center justify-center text-[#e8707e] shrink-0"><i class="fa-solid fa-mug-hot text-lg"></i></div>
+                    <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">BREAK ROOM</span>
                 </button>
-
             </div>
         </div>
     </main>
@@ -334,30 +404,83 @@
         setInterval(updateDateTime, 1000);
         updateDateTime();
 
-        // Layer Switching Logic
-        function switchView(targetLayer, btnElement, menuName) {
-            // 1. Hide All Layers in Center Area
-            document.querySelectorAll('.view-layer').forEach(layer => {
-                layer.classList.remove('active');
-            });
+        // Core Functions
+        function resetAllActiveStates() {
+            // Remove active states from all left 1-10 icons
+            for(let i = 1; i <= 10; i++) {
+                const leftBtn = document.getElementById('left-btn-' + i);
+                const rightBtn = document.getElementById('right-btn-' + i);
+                
+                if (leftBtn) {
+                    leftBtn.classList.remove('active-left');
+                    leftBtn.classList.add('text-gray-400', 'hover:bg-white/10', 'hover:text-white');
+                }
+                if (rightBtn) {
+                    rightBtn.classList.remove('active-menu');
+                }
+            }
+            
+            // Remove active state from Home
+            const homeBtn = document.getElementById('left-home');
+            homeBtn.classList.remove('bg-white/10', 'text-white');
+            homeBtn.classList.add('text-gray-400');
+        }
 
-            // 2. Show Target Layer
-            const target = document.getElementById('view-' + targetLayer);
-            if(target) target.classList.add('active');
+        // 1. OPEN MENU FUNCTION (Dari Kiri maupun Kanan)
+        function openMenu(index, menuName, viewType) {
+            resetAllActiveStates();
 
-            // Jika placeholder, ubah judulnya sesuai nama menu
-            if(targetLayer === 'placeholder' && menuName) {
-                document.getElementById('placeholder-title').innerText = menuName;
+            // Sembunyikan Panel Kanan Agar Area Jadi Lebar
+            document.getElementById('right-panel').classList.add('hidden-panel');
+
+            // Tambahkan class Aktif ke ikon Kiri & tombol Kanan yang dipilih
+            const activeLeftBtn = document.getElementById('left-btn-' + index);
+            if(activeLeftBtn) {
+                activeLeftBtn.classList.remove('text-gray-400', 'hover:bg-white/10', 'hover:text-white');
+                activeLeftBtn.classList.add('active-left');
+            }
+            
+            const activeRightBtn = document.getElementById('right-btn-' + index);
+            if(activeRightBtn) {
+                activeRightBtn.classList.add('active-menu');
             }
 
-            // 3. Reset Styling Semua Button Menu Kanan
-            document.querySelectorAll('.report-menu-btn').forEach(btn => {
-                btn.classList.remove('active-menu');
-            });
+            // Ganti Center View
+            document.querySelectorAll('.view-layer').forEach(layer => layer.classList.remove('active'));
+            
+            if (viewType === 'excel') {
+                document.getElementById('view-excel').classList.add('active');
+            } else {
+                document.getElementById('view-placeholder').classList.add('active');
+                document.getElementById('placeholder-title').innerText = menuName;
+            }
+        }
 
-            // 4. Tambahkan state "Aktif" (Glow Hijau) ke tombol yang diklik
-            if (btnElement) {
-                btnElement.classList.add('active-menu');
+        // 2. KEMBALI KE HOME
+        function goHome() {
+            resetAllActiveStates();
+            
+            // Tampilkan kembali Panel Kanan
+            document.getElementById('right-panel').classList.remove('hidden-panel');
+
+            // Tampilkan Layar Home (Gambar Mansion)
+            document.querySelectorAll('.view-layer').forEach(layer => layer.classList.remove('active'));
+            document.getElementById('view-home').classList.add('active');
+
+            // Set Home Icon as Active
+            const homeBtn = document.getElementById('left-home');
+            homeBtn.classList.remove('text-gray-400');
+            homeBtn.classList.add('bg-white/10', 'text-white');
+        }
+
+        // 3. TOGGLE MUNCULKAN/SEMBUNYIKAN PANEL KANAN 
+        // (Bisa dipicu dari tombol Grid Hijau di kiri, atau tombol "Menu Laporan" saat di dalam Excel)
+        function toggleRightPanel() {
+            const panel = document.getElementById('right-panel');
+            if (panel.classList.contains('hidden-panel')) {
+                panel.classList.remove('hidden-panel');
+            } else {
+                panel.classList.add('hidden-panel');
             }
         }
     </script>
