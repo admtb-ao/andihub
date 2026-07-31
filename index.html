@@ -311,8 +311,8 @@
                 
                 <!-- LAYER 0: HOME -->
                 <div id="view-home" class="view-layer active">
-                    <!-- DITAMBAHKAN ID dashboard-img UNTUK EFEK TERANG / GELAP -->
-                    <img id="dashboard-img" src="https://images.unsplash.com/photo-1613490908573-1785501dc65c?q=80&w=2070&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" alt="Mansion">
+                    <!-- GAMBAR DEFAULT (MALAM HARI) -->
+                    <img id="dashboard-img" src="https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=2000&q=80" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" alt="Mansion">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent"></div>
                     
                     <div class="absolute inset-0 p-5 md:p-8 flex flex-col justify-between">
@@ -585,15 +585,15 @@
                 themeIcon.classList.remove('fa-moon');
                 themeIcon.classList.add('fa-sun');
                 
-                // GAMBAR MALAM (Rumah modern dengan lampu malam & kolam renang)
-                dashboardImg.src = "https://images.unsplash.com/photo-1613490908573-1785501dc65c?q=80&w=2070&auto=format&fit=crop";
+                // GAMBAR MALAM BARU (Rumah Modern Mewah saat Twilight/Malam)
+                dashboardImg.src = "https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=2000&q=80";
             } else {
                 body.classList.add('light-mode');
                 themeIcon.classList.remove('fa-sun');
                 themeIcon.classList.add('fa-moon');
                 
-                // GAMBAR SIANG (Rumah modern cerah yang lama)
-                dashboardImg.src = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop";
+                // GAMBAR SIANG (Mansion Terang)
+                dashboardImg.src = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2075&q=80";
             }
         }
 
@@ -609,7 +609,6 @@
             homeBtn.classList.add('text-gray-400');
         }
 
-        // --- FUNGSI MEMBUKA MENU ---
         function openMenu(index) {
             resetAllActiveStates();
             
@@ -645,11 +644,9 @@
             }
         }
 
-        // --- FUNGSI GO HOME ---
         function goHome() {
             resetAllActiveStates();
             
-            // Tampilkan kembali panel kanan saat di Home (hanya di PC)
             if (window.innerWidth >= 1024) {
                 document.getElementById('right-panel').classList.remove('hidden-panel');
             } else {
@@ -673,7 +670,6 @@
             }
         }
         
-        // Handle window resize dynamically untuk mobile safety
         window.addEventListener('resize', () => {
            if(window.innerWidth < 1024) {
                document.getElementById('right-panel').classList.add('hidden-panel');
