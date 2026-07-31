@@ -111,6 +111,7 @@
                 opacity: 0;
                 margin-left: 0;
                 pointer-events: none;
+                overflow: hidden;
             }
         }
         
@@ -288,7 +289,7 @@
                 <p id="current-date" class="text-textDim text-xs md:text-sm mt-0.5 md:mt-1"></p>
             </div>
             
-            <!-- Widget Panel Kanan Atas (Lebih compact di HP) -->
+            <!-- Widget Panel Kanan Atas -->
             <div class="glass-panel px-3 py-2 md:px-4 rounded-full flex items-center gap-2 md:gap-4 border border-white/10">
                 <div class="hidden sm:flex items-center gap-2 text-gray-300 text-xs xl:text-sm">
                     <i class="fa-solid fa-cloud-sun text-amber-400"></i> <span>28°C</span>
@@ -303,11 +304,10 @@
         </header>
 
         <!-- LAYOUT: CENTER + RIGHT -->
-        <!-- Menyesuaikan tinggi dengan header mobile yg lebih tipis -->
         <div class="relative z-10 flex flex-col lg:flex-row gap-4 lg:gap-6 h-[calc(100%-4rem)] md:h-[calc(100%-5rem)] xl:h-[calc(100%-6rem)]">
             
-            <!-- CENTER AREA -->
-            <div class="flex-[1.5] relative rounded-[20px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-panel">
+            <!-- CENTER AREA (Diubah menjadi flex-1 w-full agar merespons dinamis saat panel kanan hilang) -->
+            <div class="flex-1 w-full relative rounded-[20px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-panel transition-all duration-400">
                 
                 <!-- LAYER 0: HOME -->
                 <div id="view-home" class="view-layer active">
@@ -321,7 +321,7 @@
                             <p class="text-gray-200 text-xs md:text-sm drop-shadow-md">Manage your daily operations efficiently.</p>
                         </div>
                         
-                        <!-- Widget Sistem (Di-Tengah, Menumpuk di HP) -->
+                        <!-- Widget Sistem -->
                         <div class="w-full flex justify-center pb-2">
                             <div class="glass-panel rounded-2xl py-3 px-4 md:py-4 md:px-8 flex flex-col sm:flex-row gap-4 sm:gap-8 md:gap-12 items-center border border-white/10 shadow-2xl !bg-black/60 backdrop-blur-md">
                                 
@@ -365,9 +365,9 @@
                             </div>
                         </div>
                         <div class="flex gap-2 shrink-0">
-                            <!-- Tombol Menu Khusus HP (Ikon Saja) -->
-                            <button onclick="toggleRightPanel()" class="flex lg:hidden px-3 py-2 md:px-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition items-center justify-center">
-                                <i class="fa-solid fa-list-ul"></i>
+                            <!-- Tombol Menu (Sekarang selalu muncul agar panel bisa dibuka lagi) -->
+                            <button onclick="toggleRightPanel()" class="flex px-3 py-2 md:px-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition items-center justify-center gap-2">
+                                <i class="fa-solid fa-list-ul"></i> <span class="hidden sm:inline">Menu</span>
                             </button>
                             <a href="https://lookupdata-gramedia.vercel.app/" target="_blank" class="px-3 py-2 md:px-4 md:py-2 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">Buka Tab</span>
@@ -392,9 +392,9 @@
                             </div>
                         </div>
                         <div class="flex gap-2 shrink-0">
-                            <!-- Tombol Menu Khusus HP -->
-                            <button onclick="toggleRightPanel()" class="flex lg:hidden px-3 py-2 md:px-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition items-center justify-center">
-                                <i class="fa-solid fa-list-ul"></i>
+                            <!-- Tombol Menu (Sekarang selalu muncul agar panel bisa dibuka lagi) -->
+                            <button onclick="toggleRightPanel()" class="flex px-3 py-2 md:px-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition items-center justify-center gap-2">
+                                <i class="fa-solid fa-list-ul"></i> <span class="hidden sm:inline">Menu</span>
                             </button>
                             <a id="excel-btn-fullscreen" href="#" target="_blank" class="px-3 py-2 md:px-4 md:py-2 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">Full</span>
@@ -410,9 +410,9 @@
                 </div>
 
                 <!-- LAYER 3: COMING SOON (MENU 10 - BREAK ROOM) -->
-                <div id="view-coming-soon" class="view-layer flex items-center justify-center bg-panel px-4">
+                <div id="view-coming-soon" class="view-layer flex items-center justify-center bg-panel px-4 relative">
                     <div class="text-center max-w-sm relative">
-                        <button onclick="toggleRightPanel()" class="absolute -top-16 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm flex items-center gap-2 transition lg:hidden">
+                        <button onclick="toggleRightPanel()" class="absolute -top-16 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm flex items-center gap-2 transition">
                             <i class="fa-solid fa-list-ul"></i> Buka Menu
                         </button>
 
@@ -547,9 +547,11 @@
             10: { type: 'coming-soon' }
         };
 
-        // Initialize Panel state on mobile (Tertutup secara default)
+        // Initialize Panel state on load (Tampil jika layar PC)
         if(window.innerWidth < 1024) {
             document.getElementById('right-panel').classList.add('hidden-panel');
+        } else {
+            document.getElementById('right-panel').classList.remove('hidden-panel');
         }
 
         // Waktu Real Time
@@ -590,15 +592,12 @@
             homeBtn.classList.add('text-gray-400');
         }
 
+        // --- FUNGSI MEMBUKA MENU: PANEL KANAN SEKARANG OTOMATIS HILANG ---
         function openMenu(index) {
             resetAllActiveStates();
             
-            // Auto close panel saat menu dipilih (KHUSUS HP)
-            if (window.innerWidth < 1024) {
-                document.getElementById('right-panel').classList.add('hidden-panel');
-            } else {
-                document.getElementById('right-panel').classList.remove('hidden-panel');
-            }
+            // Auto close panel saat menu dipilih (UNTUK SEMUA PERANGKAT - PC / HP)
+            document.getElementById('right-panel').classList.add('hidden-panel');
 
             const activeLeftBtn = document.getElementById('left-btn-' + index);
             if(activeLeftBtn) {
@@ -629,13 +628,15 @@
             }
         }
 
+        // --- FUNGSI GO HOME: MENGEMBALIKAN PANEL SEPERTI AWAL ---
         function goHome() {
             resetAllActiveStates();
             
-            if (window.innerWidth < 1024) {
-                document.getElementById('right-panel').classList.add('hidden-panel');
-            } else {
+            // Tampilkan kembali panel kanan saat di Home (hanya di PC)
+            if (window.innerWidth >= 1024) {
                 document.getElementById('right-panel').classList.remove('hidden-panel');
+            } else {
+                document.getElementById('right-panel').classList.add('hidden-panel');
             }
             
             document.querySelectorAll('.view-layer').forEach(layer => layer.classList.remove('active'));
@@ -655,11 +656,9 @@
             }
         }
         
-        // Handle window resize dynamically
+        // Handle window resize dynamically untuk mobile safety
         window.addEventListener('resize', () => {
-           if(window.innerWidth >= 1024) {
-               document.getElementById('right-panel').classList.remove('hidden-panel');
-           } else {
+           if(window.innerWidth < 1024) {
                document.getElementById('right-panel').classList.add('hidden-panel');
            }
         });
