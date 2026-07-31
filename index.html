@@ -30,10 +30,12 @@
     </script>
 
     <style>
+        /* TEMA DEFAULT (GELAP) */
         body { 
             background-color: #121214; 
             color: #ffffff;
             overflow: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
         } 
         
         /* Glassmorphism Panel */
@@ -42,7 +44,33 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.4s ease, border-color 0.4s ease;
         }
+
+        /* -------------------------------------------
+           TEMA LIGHT MODE (MODE TERANG) OVERRIDES
+           ------------------------------------------- */
+        body.light-mode {
+            background-color: #f1f5f9; /* Tailwind slate-100 */
+            color: #0f172a;
+        }
+        body.light-mode .bg-panel { background-color: rgba(255, 255, 255, 0.85); }
+        body.light-mode .bg-dark\/95 { background-color: rgba(241, 245, 249, 0.85); }
+        body.light-mode .text-white { color: #0f172a !important; }
+        body.light-mode .text-gray-200 { color: #334155 !important; }
+        body.light-mode .text-gray-300 { color: #334155 !important; }
+        body.light-mode .text-gray-400 { color: #475569 !important; }
+        body.light-mode .text-textDim { color: #64748b !important; }
+        body.light-mode .border-white\/5, 
+        body.light-mode .border-white\/10 { border-color: rgba(0,0,0,0.1) !important; }
+        body.light-mode .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            border-color: rgba(0,0,0,0.1);
+        }
+        body.light-mode .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.05) !important; }
+        body.light-mode .report-menu-btn { background: rgba(255, 255, 255, 0.6); }
+        
+        /* ------------------------------------------- */
 
         /* Center Content Animations */
         .view-layer {
@@ -60,7 +88,7 @@
             z-index: 10;
         }
 
-        /* Right Panel Hide/Show Animation */
+        /* Right Panel Auto-Hide Animation */
         #right-panel {
             transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.4s ease;
             width: 350px;
@@ -76,7 +104,7 @@
             pointer-events: none;
         }
 
-        /* Menu Button Styles */
+        /* Right Menu Button Styles */
         .report-menu-btn {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid transparent;
@@ -87,7 +115,7 @@
             box-shadow: 0 0 20px rgba(74, 222, 128, 0.25), inset 0 0 10px rgba(74, 222, 128, 0.1);
             transform: translateX(-4px);
         }
-        .report-menu-btn:hover span, .report-menu-btn.active-menu span { color: #ffffff; }
+        .report-menu-btn:hover span, .report-menu-btn.active-menu span { color: #4ade80 !important; }
 
         /* Left Icon Active Glow */
         .left-icon-btn { transition: all 0.2s ease; }
@@ -101,12 +129,12 @@
         /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-        .custom-scrollbar-left::-webkit-scrollbar { display: none; } /* Hide scrollbar on left sidebar */
+        ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.5); }
+        .custom-scrollbar-left::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="h-screen flex text-sm">
+<body class="h-screen flex text-sm transition-colors">
 
     <!-- LEFT SIDEBAR -->
     <aside class="w-[80px] h-full flex flex-col items-center py-6 border-r border-white/5 bg-panel/90 z-40 shrink-0">
@@ -114,7 +142,7 @@
         <!-- Top Core Icons -->
         <div class="flex flex-col gap-4 w-full items-center mb-4">
             <!-- Home Icon -->
-            <button id="left-home" onclick="goHome()" class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 transition border border-transparent hover:border-white/10">
+            <button id="left-home" onclick="goHome()" class="w-12 h-12 flex items-center justify-center rounded-2xl text-white bg-white/10 hover:bg-white/20 transition border border-transparent">
                 <i class="fa-solid fa-house-chimney text-xl"></i>
             </button>
             
@@ -130,91 +158,85 @@
         <!-- 10 Menu Icons (With Tooltips) -->
         <div class="flex-1 w-full flex flex-col items-center gap-3 overflow-y-auto custom-scrollbar-left pb-4 pt-2 relative">
             
-            <!-- 1 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-1" onclick="openMenu(1, 'LOOKUP DATA OTOMATIS', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-1" onclick="openMenu(1)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-folder-open text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">LOOKUP DATA OTOMATIS</span>
             </div>
 
-            <!-- 2 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-2" onclick="openMenu(2, 'ID ORIN GRAMEDIA X KODE BSOFT', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-2" onclick="openMenu(2)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-address-book text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">ID ORIN GRAMEDIA X KODE BSOFT</span>
             </div>
 
-            <!-- 3 (EXCEL) -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-3" onclick="openMenu(3, 'Report Stock Status Gramedia (GAM)', 'excel')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-3" onclick="openMenu(3)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-box text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Report Stock Status Gramedia (GAM)</span>
             </div>
 
-            <!-- 4 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-4" onclick="openMenu(4, 'Rekap STO Gramedia', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-4" onclick="openMenu(4)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-layer-group text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Rekap STO Gramedia</span>
             </div>
 
-            <!-- 5 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-5" onclick="openMenu(5, 'Rekap RO Gramedia 2026', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-5" onclick="openMenu(5)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-chart-column text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Rekap RO Gramedia 2026</span>
             </div>
 
-            <!-- 6 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-6" onclick="openMenu(6, 'E-Catalog Penawaran Gramedia', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-6" onclick="openMenu(6)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-book-open text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">E-Catalog Penawaran Gramedia</span>
             </div>
 
-            <!-- 7 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-7" onclick="openMenu(7, 'DATA TOKO GRAMEDIA', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-7" onclick="openMenu(7)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-building text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">DATA TOKO GRAMEDIA</span>
             </div>
 
-            <!-- 8 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-8" onclick="openMenu(8, 'Laku Jual Gramedia 2026 (GAM)', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-8" onclick="openMenu(8)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-sack-dollar text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Laku Jual Gramedia 2026 (GAM)</span>
             </div>
 
-            <!-- 9 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-9" onclick="openMenu(9, 'Consigment Advice Per Store 2026 (GAM)', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-9" onclick="openMenu(9)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-money-bill-wave text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">Consigment Advice Per Store 2026 (GAM)</span>
             </div>
 
-            <!-- 10 -->
             <div class="relative group flex items-center justify-center w-full">
-                <button id="left-btn-10" onclick="openMenu(10, 'BREAK ROOM', 'placeholder')" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
+                <button id="left-btn-10" onclick="openMenu(10)" class="left-icon-btn w-11 h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-mug-hot text-lg"></i>
                 </button>
                 <span class="absolute left-16 bg-panel border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">BREAK ROOM</span>
             </div>
         </div>
 
-        <!-- Bottom Icon -->
-        <div class="pt-2">
-            <button class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-500 hover:text-white hover:bg-white/10 transition">
-                <i class="fa-regular fa-sun text-xl"></i>
+        <!-- Line Separator -->
+        <div class="w-8 h-[1px] bg-white/10 mt-2 mb-2"></div>
+
+        <!-- Bottom Icon (THEME TOGGLE) -->
+        <div class="pb-2">
+            <!-- Berfungsi sebagai tombol ganti mode terang/gelap -->
+            <button onclick="toggleTheme()" class="w-12 h-12 flex items-center justify-center rounded-2xl text-gray-400 hover:text-accent transition">
+                <i id="theme-icon" class="fa-regular fa-sun text-2xl"></i>
             </button>
         </div>
     </aside>
@@ -222,7 +244,7 @@
     <!-- MAIN WORKSPACE -->
     <main class="flex-1 flex flex-col h-full relative p-4 lg:p-6 xl:p-8 overflow-hidden bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center">
         <!-- Overlay Gelap Background -->
-        <div class="absolute inset-0 bg-dark/95 backdrop-blur-3xl"></div>
+        <div class="absolute inset-0 bg-dark/95 backdrop-blur-3xl transition-colors duration-400"></div>
 
         <!-- Top Header Info -->
         <header class="relative z-10 flex justify-between items-start mb-6 xl:mb-8">
@@ -234,24 +256,24 @@
             <!-- Widget Panel Kanan Atas -->
             <div class="glass-panel px-4 py-2 rounded-full flex items-center gap-4 border border-white/10">
                 <div class="flex items-center gap-2 text-gray-300 text-xs xl:text-sm">
-                    <i class="fa-solid fa-cloud-sun"></i> <span>28°C</span>
+                    <i class="fa-solid fa-cloud-sun text-amber-400"></i> <span>28°C</span>
                 </div>
-                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <div class="w-1 h-1 rounded-full bg-gray-400/50"></div>
                 <div class="flex items-center gap-2 text-gray-300 text-xs xl:text-sm">
-                    <i class="fa-solid fa-location-dot"></i> <span>Yogyakarta</span>
+                    <i class="fa-solid fa-location-dot text-rose-500"></i> <span>Yogyakarta</span>
                 </div>
-                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <div class="w-1 h-1 rounded-full bg-gray-400/50"></div>
                 <div id="current-time" class="font-bold text-white tracking-wide text-xs xl:text-sm">09:43</div>
             </div>
         </header>
 
-        <!-- LAYOUT: CENTER (Visual/Excel) + RIGHT (Menu List) -->
+        <!-- LAYOUT: CENTER + RIGHT -->
         <div class="relative z-10 flex flex-col lg:flex-row gap-6 h-[calc(100%-5rem)] xl:h-[calc(100%-6rem)]">
             
-            <!-- CENTER AREA: Menampilkan Gambar Mansion atau Iframe Excel -->
+            <!-- CENTER AREA: Menampilkan Visual -->
             <div class="flex-[1.5] relative rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-panel">
                 
-                <!-- LAYER 1: HOME (Gambar Mansion) -->
+                <!-- LAYER 0: HOME (Gambar Mansion) -->
                 <div id="view-home" class="view-layer active">
                     <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover" alt="Mansion">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
@@ -261,21 +283,20 @@
                             <h2 class="text-4xl font-bold text-white mb-2 tracking-tight drop-shadow-lg">AO Dashboard</h2>
                             <p class="text-gray-200 text-sm drop-shadow-md">Manage your daily operations efficiently.</p>
                         </div>
-
-                        <div class="glass-panel rounded-2xl p-4 flex gap-6 w-fit items-center border border-white/10 shadow-lg">
+                        <div class="glass-panel rounded-2xl p-4 flex gap-6 w-fit items-center border border-white/10 shadow-lg !bg-black/40">
                             <div class="flex items-center gap-4 pr-6 border-r border-white/10">
-                                <i class="fa-solid fa-wifi text-gray-400"></i>
+                                <i class="fa-solid fa-wifi text-gray-300"></i>
                                 <div>
                                     <p class="text-white font-semibold text-sm">System Status</p>
-                                    <p class="text-xs text-textDim">Network Connection</p>
+                                    <p class="text-xs text-gray-400">Network Connection</p>
                                 </div>
                                 <span class="flex items-center gap-2 text-accent text-sm font-bold ml-2">Online <div class="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_#4ade80]"></div></span>
                             </div>
                             <div class="flex items-center gap-4">
-                                <i class="fa-solid fa-microchip text-gray-400"></i>
+                                <i class="fa-solid fa-microchip text-gray-300"></i>
                                 <div>
                                     <p class="text-white font-semibold text-sm">Local Memory</p>
-                                    <p class="text-xs text-textDim">Browser RAM Usage</p>
+                                    <p class="text-xs text-gray-400">Browser RAM Usage</p>
                                 </div>
                                 <span class="text-accent text-sm font-bold ml-2">44 MB</span>
                             </div>
@@ -283,109 +304,130 @@
                     </div>
                 </div>
 
-                <!-- LAYER 2: EXCEL ONLINE -->
-                <div id="view-excel" class="view-layer flex flex-col bg-white">
+                <!-- LAYER 1: DATA LOOKUP WEB (MENU 1) -->
+                <div id="view-lookup" class="view-layer flex flex-col bg-white">
                     <div class="px-6 py-4 flex justify-between items-center bg-panel border-b border-white/10 shrink-0">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
-                                <i class="fa-solid fa-box"></i>
+                            <div class="w-10 h-10 rounded-xl bg-[#2b4c7e]/20 flex items-center justify-center text-[#7ba5e8]">
+                                <i class="fa-solid fa-folder-open text-lg"></i>
                             </div>
                             <div>
-                                <h2 class="text-lg font-bold text-white leading-tight">Report Stock Status Gramedia (GAM)</h2>
-                                <p class="text-xs text-textDim">Microsoft SharePoint Integration</p>
+                                <h2 class="text-lg font-bold text-white leading-tight">LOOKUP DATA OTOMATIS</h2>
+                                <p class="text-xs text-textDim">Web App Integration</p>
                             </div>
                         </div>
                         <div class="flex gap-3">
                             <button onclick="toggleRightPanel()" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
-                                <i class="fa-solid fa-list-ul"></i> Menu Laporan
+                                <i class="fa-solid fa-list-ul"></i> Menu Utama
                             </button>
-                            <a href="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ" target="_blank" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
+                            <a href="https://lookupdata-gramedia.vercel.app/" target="_blank" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka di Tab Baru
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full relative">
+                        <!-- Iframe Lookup -->
+                        <iframe src="https://lookupdata-gramedia.vercel.app/" class="absolute inset-0 w-full h-full border-none"></iframe>
+                    </div>
+                </div>
+
+                <!-- LAYER 2: EXCEL ONLINE DYNAMIC (MENU 2 - 9) -->
+                <div id="view-excel" class="view-layer flex flex-col bg-white">
+                    <div class="px-6 py-4 flex justify-between items-center bg-panel border-b border-white/10 shrink-0">
+                        <div class="flex items-center gap-3">
+                            <div id="excel-icon-box" class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+                                <i id="excel-icon" class="fa-solid fa-box text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 id="excel-title" class="text-lg font-bold text-white leading-tight">Nama Report Excel</h2>
+                                <p class="text-xs text-textDim">Microsoft SharePoint Integration</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="toggleRightPanel()" class="hidden md:flex px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition items-center gap-2">
+                                <i class="fa-solid fa-list-ul"></i> Menu
+                            </button>
+                            <a id="excel-btn-fullscreen" href="#" target="_blank" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition flex items-center gap-2">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Full Screen
                             </a>
-                            <a href="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ&download=1" class="px-4 py-2 rounded-xl bg-accent hover:bg-accent/80 text-dark font-bold text-sm transition flex items-center gap-2 shadow-[0_0_15px_rgba(74,222,128,0.3)]">
+                            <a id="excel-btn-download" href="#" class="px-4 py-2 rounded-xl bg-accent hover:bg-accent/80 text-dark font-bold text-sm transition flex items-center gap-2 shadow-[0_0_15px_rgba(74,222,128,0.3)]">
                                 <i class="fa-solid fa-download"></i> Download
                             </a>
                         </div>
                     </div>
-                    <!-- Iframe Excel -->
                     <div class="flex-1 w-full relative">
-                        <iframe 
-                            src="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ&action=embedview" 
-                            class="absolute inset-0 w-full h-full border-none"
-                            title="Excel Data">
-                        </iframe>
+                        <iframe id="excel-iframe" src="" class="absolute inset-0 w-full h-full border-none"></iframe>
                     </div>
                 </div>
 
-                <!-- LAYER 3: PLACEHOLDER (Menu Belum Ada Data) -->
-                <div id="view-placeholder" class="view-layer flex items-center justify-center bg-panel">
+                <!-- LAYER 3: COMING SOON (MENU 10 - BREAK ROOM) -->
+                <div id="view-coming-soon" class="view-layer flex items-center justify-center bg-panel">
                     <div class="text-center max-w-sm relative">
-                        <!-- Tombol Buka Menu Kanan (Muncul jika menu disembunyikan) -->
-                        <button onclick="toggleRightPanel()" class="absolute -top-16 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm flex items-center gap-2 transition">
-                            <i class="fa-solid fa-list-ul"></i> Buka Menu Laporan
+                        <button onclick="toggleRightPanel()" class="absolute -top-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm flex items-center gap-2 transition">
+                            <i class="fa-solid fa-list-ul"></i> Buka Menu Utama
                         </button>
 
-                        <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 border border-white/10">
-                            <i class="fa-solid fa-link-slash text-3xl text-gray-500"></i>
+                        <div class="w-24 h-24 rounded-3xl bg-[#6e2c33]/20 flex items-center justify-center mx-auto mb-6 border border-[#6e2c33]/50">
+                            <i class="fa-solid fa-mug-hot text-5xl text-[#e8707e]"></i>
                         </div>
-                        <h2 class="text-xl font-bold text-white mb-2" id="placeholder-title">Modul Segera Hadir</h2>
-                        <p class="text-gray-400 text-sm">Data untuk menu ini sedang dalam tahap integrasi.</p>
+                        <h2 class="text-3xl font-bold text-white mb-3">COMING SOON</h2>
+                        <p class="text-gray-400 text-sm">Ruang istirahat dan fitur tambahan sedang dalam tahap pengembangan. Silakan kembali lagi nanti!</p>
                     </div>
                 </div>
+
             </div>
 
-            <!-- RIGHT PANEL: 10 MENU DAFTAR LAPORAN (Bisa Ter-Hide) -->
+            <!-- RIGHT PANEL: 10 MENU DAFTAR LAPORAN -->
             <div id="right-panel" class="shrink-0 flex flex-col gap-2 overflow-y-auto pr-2 pb-6 custom-scrollbar">
                 
-                <button id="right-btn-1" onclick="openMenu(1, 'LOOKUP DATA OTOMATIS', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-1" onclick="openMenu(1)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#2b4c7e]/80 flex items-center justify-center text-[#7ba5e8] shrink-0"><i class="fa-solid fa-folder-open text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">LOOKUP DATA OTOMATIS</span>
                 </button>
 
-                <button id="right-btn-2" onclick="openMenu(2, 'ID ORIN GRAMEDIA X KODE BSOFT', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-2" onclick="openMenu(2)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#245e69]/80 flex items-center justify-center text-[#5bc9d9] shrink-0"><i class="fa-solid fa-address-book text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">ID ORIN GRAMEDIA X KODE BSOFT</span>
                 </button>
 
-                <!-- TRIGGER EXCEL -->
-                <button id="right-btn-3" onclick="openMenu(3, 'Report Stock Status Gramedia (GAM)', 'excel')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-3" onclick="openMenu(3)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#8c5220]/80 flex items-center justify-center text-[#e89c61] shrink-0"><i class="fa-solid fa-box text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Report Stock Status Gramedia (GAM)</span>
                 </button>
 
-                <button id="right-btn-4" onclick="openMenu(4, 'Rekap STO Gramedia', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-4" onclick="openMenu(4)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#393469]/80 flex items-center justify-center text-[#9b94e8] shrink-0"><i class="fa-solid fa-layer-group text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Rekap STO Gramedia</span>
                 </button>
 
-                <button id="right-btn-5" onclick="openMenu(5, 'Rekap RO Gramedia 2026', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-5" onclick="openMenu(5)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#6b2c4c]/80 flex items-center justify-center text-[#e87cb5] shrink-0"><i class="fa-solid fa-chart-column text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Rekap RO Gramedia 2026</span>
                 </button>
 
-                <button id="right-btn-6" onclick="openMenu(6, 'E-Catalog Penawaran Gramedia', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-6" onclick="openMenu(6)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#215c42]/80 flex items-center justify-center text-[#61e8a9] shrink-0"><i class="fa-solid fa-book-open text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">E-Catalog Penawaran Gramedia</span>
                 </button>
 
-                <button id="right-btn-7" onclick="openMenu(7, 'DATA TOKO GRAMEDIA', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-7" onclick="openMenu(7)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#23587a]/80 flex items-center justify-center text-[#61bde8] shrink-0"><i class="fa-solid fa-building text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">DATA TOKO GRAMEDIA</span>
                 </button>
 
-                <button id="right-btn-8" onclick="openMenu(8, 'Laku Jual Gramedia 2026 (GAM)', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-8" onclick="openMenu(8)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#735e16]/80 flex items-center justify-center text-[#e8c643] shrink-0"><i class="fa-solid fa-sack-dollar text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Laku Jual Gramedia 2026 (GAM)</span>
                 </button>
 
-                <button id="right-btn-9" onclick="openMenu(9, 'Consigment Advice Per Store 2026 (GAM)', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-9" onclick="openMenu(9)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#1d6b41]/80 flex items-center justify-center text-[#55e896] shrink-0"><i class="fa-solid fa-money-bill-wave text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">Consigment Advice Per Store 2026 (GAM)</span>
                 </button>
 
                 <div class="h-[1px] bg-white/10 my-1 mx-2"></div>
 
-                <button id="right-btn-10" onclick="openMenu(10, 'BREAK ROOM', 'placeholder')" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
+                <button id="right-btn-10" onclick="openMenu(10)" class="report-menu-btn w-full flex items-center gap-4 p-3 rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#6e2c33]/80 flex items-center justify-center text-[#e8707e] shrink-0"><i class="fa-solid fa-mug-hot text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-[13px] leading-snug whitespace-nowrap">BREAK ROOM</span>
                 </button>
@@ -395,86 +437,121 @@
 
     <!-- Logic Javascript -->
     <script>
-        // Real-Time Date & Time
+        // ====================================================================
+        // KONFIGURASI DATABASE MENU (SILAKAN EDIT LINK EXCEL DI BAWAH INI NANTI)
+        // ====================================================================
+        const excelSharePointLink = "https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ";
+        
+        const menuData = {
+            1: { type: 'lookup' }, // Punya view khusus
+            2: { title: "ID ORIN GRAMEDIA X KODE BSOFT", type: 'excel', link: excelSharePointLink, icon: "fa-address-book", iconBg: "bg-[#245e69]/20", iconColor: "text-[#5bc9d9]" },
+            3: { title: "Report Stock Status Gramedia (GAM)", type: 'excel', link: excelSharePointLink, icon: "fa-box", iconBg: "bg-orange-500/20", iconColor: "text-orange-400" },
+            4: { title: "Rekap STO Gramedia", type: 'excel', link: excelSharePointLink, icon: "fa-layer-group", iconBg: "bg-[#393469]/20", iconColor: "text-[#9b94e8]" },
+            5: { title: "Rekap RO Gramedia 2026", type: 'excel', link: excelSharePointLink, icon: "fa-chart-column", iconBg: "bg-[#6b2c4c]/20", iconColor: "text-[#e87cb5]" },
+            6: { title: "E-Catalog Penawaran Gramedia", type: 'excel', link: excelSharePointLink, icon: "fa-book-open", iconBg: "bg-[#215c42]/20", iconColor: "text-[#61e8a9]" },
+            7: { title: "DATA TOKO GRAMEDIA", type: 'excel', link: excelSharePointLink, icon: "fa-building", iconBg: "bg-[#23587a]/20", iconColor: "text-[#61bde8]" },
+            8: { title: "Laku Jual Gramedia 2026 (GAM)", type: 'excel', link: excelSharePointLink, icon: "fa-sack-dollar", iconBg: "bg-[#735e16]/20", iconColor: "text-[#e8c643]" },
+            9: { title: "Consigment Advice Per Store 2026 (GAM)", type: 'excel', link: excelSharePointLink, icon: "fa-money-bill-wave", iconBg: "bg-[#1d6b41]/20", iconColor: "text-[#55e896]" },
+            10: { type: 'coming-soon' } // Punya view khusus Break Room
+        };
+        // ====================================================================
+
+        // Waktu Real Time
         function updateDateTime() {
             const now = new Date();
             document.getElementById('current-time').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('current-date').innerText = now.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
         }
-        setInterval(updateDateTime, 1000);
-        updateDateTime();
+        setInterval(updateDateTime, 1000); updateDateTime();
 
-        // Core Functions
+        // 1. FITUR THEME TOGGLE (Terang / Gelap)
+        let isDarkMode = true;
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            isDarkMode = !isDarkMode;
+            
+            if (isDarkMode) {
+                body.classList.remove('light-mode');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                body.classList.add('light-mode');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // 2. FUNGSI MERESET MENU
         function resetAllActiveStates() {
-            // Remove active states from all left 1-10 icons
             for(let i = 1; i <= 10; i++) {
                 const leftBtn = document.getElementById('left-btn-' + i);
                 const rightBtn = document.getElementById('right-btn-' + i);
-                
-                if (leftBtn) {
-                    leftBtn.classList.remove('active-left');
-                    leftBtn.classList.add('text-gray-400', 'hover:bg-white/10', 'hover:text-white');
-                }
-                if (rightBtn) {
-                    rightBtn.classList.remove('active-menu');
-                }
+                if (leftBtn) { leftBtn.classList.remove('active-left'); leftBtn.classList.add('text-gray-400', 'hover:bg-white/10', 'hover:text-white'); }
+                if (rightBtn) { rightBtn.classList.remove('active-menu'); }
             }
-            
-            // Remove active state from Home
             const homeBtn = document.getElementById('left-home');
             homeBtn.classList.remove('bg-white/10', 'text-white');
             homeBtn.classList.add('text-gray-400');
         }
 
-        // 1. OPEN MENU FUNCTION (Dari Kiri maupun Kanan)
-        function openMenu(index, menuName, viewType) {
+        // 3. FUNGSI MEMBUKA MENU DENGAN LOGIKA DINAMIS
+        function openMenu(index) {
             resetAllActiveStates();
+            document.getElementById('right-panel').classList.add('hidden-panel'); // Sembunyikan panel kanan
 
-            // Sembunyikan Panel Kanan Agar Area Jadi Lebar
-            document.getElementById('right-panel').classList.add('hidden-panel');
-
-            // Tambahkan class Aktif ke ikon Kiri & tombol Kanan yang dipilih
+            // Aktifkan Efek Nyala (Kiri & Kanan)
             const activeLeftBtn = document.getElementById('left-btn-' + index);
             if(activeLeftBtn) {
                 activeLeftBtn.classList.remove('text-gray-400', 'hover:bg-white/10', 'hover:text-white');
                 activeLeftBtn.classList.add('active-left');
             }
-            
             const activeRightBtn = document.getElementById('right-btn-' + index);
-            if(activeRightBtn) {
-                activeRightBtn.classList.add('active-menu');
-            }
+            if(activeRightBtn) activeRightBtn.classList.add('active-menu');
 
-            // Ganti Center View
+            // Hapus View Sebelumnya
             document.querySelectorAll('.view-layer').forEach(layer => layer.classList.remove('active'));
             
-            if (viewType === 'excel') {
+            // Logika Menampilkan Data sesuai Nomor Menu
+            const data = menuData[index];
+
+            if (data.type === 'lookup') {
+                // Tampilkan halaman khusus Web Lookup
+                document.getElementById('view-lookup').classList.add('active');
+            
+            } else if (data.type === 'coming-soon') {
+                // Tampilkan halaman khusus Break Room
+                document.getElementById('view-coming-soon').classList.add('active');
+            
+            } else if (data.type === 'excel') {
+                // Tampilkan Iframe Excel secara Dinamis (Update Kontennya via JS)
                 document.getElementById('view-excel').classList.add('active');
-            } else {
-                document.getElementById('view-placeholder').classList.add('active');
-                document.getElementById('placeholder-title').innerText = menuName;
+                
+                document.getElementById('excel-title').innerText = data.title;
+                document.getElementById('excel-icon').className = "fa-solid " + data.icon + " text-lg";
+                document.getElementById('excel-icon-box').className = "w-10 h-10 rounded-xl flex items-center justify-center " + data.iconBg + " " + data.iconColor;
+                
+                // Set Link URL ke Iframe dan Tombol
+                document.getElementById('excel-iframe').src = data.link + "&action=embedview";
+                document.getElementById('excel-btn-fullscreen').href = data.link;
+                document.getElementById('excel-btn-download').href = data.link + "&download=1";
             }
         }
 
-        // 2. KEMBALI KE HOME
+        // 4. KEMBALI KE HOME
         function goHome() {
             resetAllActiveStates();
-            
-            // Tampilkan kembali Panel Kanan
             document.getElementById('right-panel').classList.remove('hidden-panel');
-
-            // Tampilkan Layar Home (Gambar Mansion)
             document.querySelectorAll('.view-layer').forEach(layer => layer.classList.remove('active'));
             document.getElementById('view-home').classList.add('active');
 
-            // Set Home Icon as Active
             const homeBtn = document.getElementById('left-home');
             homeBtn.classList.remove('text-gray-400');
             homeBtn.classList.add('bg-white/10', 'text-white');
         }
 
-        // 3. TOGGLE MUNCULKAN/SEMBUNYIKAN PANEL KANAN 
-        // (Bisa dipicu dari tombol Grid Hijau di kiri, atau tombol "Menu Laporan" saat di dalam Excel)
+        // 5. TOGGLE MUNCULKAN/SEMBUNYIKAN MENU
         function toggleRightPanel() {
             const panel = document.getElementById('right-panel');
             if (panel.classList.contains('hidden-panel')) {
