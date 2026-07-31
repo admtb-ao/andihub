@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Profesional</title>
+    <title>AO Console Dashboard</title>
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Tailwind CSS (CDN for standalone file) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -19,12 +19,11 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: '#4f46e5',
-                        sidebar: '#0f172a',
-                    },
-                    spacing: {
-                        'sidebar-collapsed': '5rem',
-                        'sidebar-expanded': '16rem',
+                        dark: '#121214',
+                        panel: '#1c1c1f',
+                        glass: 'rgba(28, 28, 31, 0.6)',
+                        accent: '#4ade80', /* Hijau Neon persis seperti referensi */
+                        textDim: '#8b8b93'
                     }
                 }
             }
@@ -32,276 +31,385 @@
     </script>
 
     <style>
-        body { overflow: hidden; } 
-        .menu-content { display: none; }
-        .menu-content.active { display: flex; }
+        body { 
+            background-color: #121214; 
+            color: #ffffff;
+            overflow: hidden;
+        } 
         
-        /* Transisi halus saat sidebar membesar/mengecil */
-        #sidebar { transition: width 0.3s ease-in-out, transform 0.3s ease-in-out; }
-        .menu-text-container { transition: opacity 0.2s ease-in-out; }
-        .whitespace-nowrap { white-space: nowrap; }
+        /* Glassmorphism & 3D Effects */
+        .glass-panel {
+            background: rgba(28, 28, 31, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .interactive-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Active Menu Glow */
+        .menu-icon-active {
+            background-color: #4ade80;
+            color: #121214;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+        }
+
+        /* Custom Scrollbar for Dark Theme */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Menu Switching logic */
+        .view-content { display: none; opacity: 0; transition: opacity 0.4s ease; }
+        .view-content.active { display: flex; opacity: 1; }
+
+        /* Toggle Switch Styling */
+        .toggle-checkbox:checked { right: 0; border-color: #4ade80; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4ade80; }
+        .toggle-checkbox:checked + .toggle-label:after { transform: translateX(100%); border-color: white; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex">
+<body class="h-screen flex text-sm">
 
-    <!-- Mobile Overlay -->
-    <div id="mobile-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 hidden md:hidden" onclick="toggleSidebar()"></div>
-
-    <!-- Sidebar -->
-    <aside id="sidebar" class="bg-sidebar w-64 shrink-0 h-full flex flex-col text-slate-300 fixed md:relative z-30 transform -translate-x-full md:translate-x-0 md:w-sidebar-expanded overflow-x-hidden">
-        <!-- Logo -->
-        <div class="h-16 flex items-center px-6 border-b border-slate-700 bg-slate-900 shadow-sm min-w-max">
-            <i class="fa-solid fa-chart-pie text-primary text-2xl mr-3"></i>
-            <span id="logo-text" class="text-white font-bold text-lg tracking-wide menu-text-container">NexusDash</span>
-        </div>
-
-        <!-- Menu List -->
-        <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar overflow-x-hidden">
-            <ul class="space-y-1">
-                <!-- MENU 0: BERANDA (DEFAULT ACTIVE) -->
-                <li>
-                    <a href="#" onclick="switchTab('menu-home', this, false)" title="Beranda Utama" class="nav-item active flex items-center px-6 py-3 bg-primary text-white hover:bg-primary/90 transition-colors min-w-max">
-                        <i class="fa-solid fa-house w-6 text-center"></i>
-                        <span class="font-medium ml-3 menu-text-container whitespace-nowrap">Beranda</span>
-                    </a>
-                </li>
-                <!-- MENU 1: SPREADSHEET EXCEL -->
-                <li>
-                    <a href="#" onclick="switchTab('menu1', this, true)" title="Data Spreadsheet" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max">
-                        <i class="fa-solid fa-table w-6 text-center"></i>
-                        <span class="font-medium ml-3 menu-text-container whitespace-nowrap">Data Spreadsheet</span>
-                    </a>
-                </li>
-                <li><a href="#" onclick="switchTab('menu2', this, true)" title="Analisis Data" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-chart-line w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Analisis Data</span></a></li>
-                <li><a href="#" onclick="switchTab('menu3', this, true)" title="Manajemen Klien" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-users w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Manajemen Klien</span></a></li>
-                <li><a href="#" onclick="switchTab('menu4', this, true)" title="Inventaris" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-box w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Inventaris</span></a></li>
-                <li><a href="#" onclick="switchTab('menu5', this, true)" title="Keuangan" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-file-invoice-dollar w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Keuangan</span></a></li>
-                <li><a href="#" onclick="switchTab('menu6', this, true)" title="Jadwal & Tugas" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-calendar-days w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Jadwal & Tugas</span></a></li>
-                <li><a href="#" onclick="switchTab('menu7', this, true)" title="Pesan Masuk" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-envelope w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Pesan Masuk</span></a></li>
-                <li><a href="#" onclick="switchTab('menu8', this, true)" title="Kampanye" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-bullhorn w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Kampanye</span></a></li>
-                <li><a href="#" onclick="switchTab('menu9', this, true)" title="Pengaturan" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-gear w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Pengaturan</span></a></li>
-                <li><a href="#" onclick="switchTab('menu10', this, true)" title="Bantuan" class="nav-item flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors min-w-max"><i class="fa-solid fa-circle-question w-6 text-center"></i><span class="ml-3 menu-text-container whitespace-nowrap">Bantuan</span></a></li>
-            </ul>
-        </nav>
+    <!-- Sidebar (Modern & Sleek) -->
+    <aside class="w-[280px] h-full flex flex-col border-r border-white/5 bg-panel/50 z-20 shrink-0">
         
-        <!-- User Profile -->
-        <div class="border-t border-slate-700 p-4 min-w-max">
-            <div class="flex items-center gap-3 ml-2">
-                <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="User" class="w-10 h-10 rounded-full shrink-0">
-                <div id="user-profile-text" class="menu-text-container">
-                    <p class="text-sm font-semibold text-white">Admin Utama</p>
-                    <p class="text-xs text-slate-400">admin@nexus.com</p>
-                </div>
-            </div>
+        <!-- App Logo / Home Button -->
+        <div class="h-24 flex items-center px-6">
+            <button onclick="switchView('home', this)" class="menu-btn interactive-card flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white menu-icon-active">
+                <i class="fa-solid fa-house text-lg"></i>
+            </button>
+            <span class="ml-4 font-bold text-lg tracking-wide text-white">AO Console</span>
         </div>
+
+        <!-- Menu Navigation -->
+        <nav class="flex-1 overflow-y-auto px-4 pb-6 space-y-1 mt-4">
+            <p class="text-xs font-semibold text-textDim uppercase tracking-wider mb-3 px-2">Workspaces</p>
+            
+            <!-- Menu 1 -->
+            <button onclick="switchView('menu1', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-regular fa-folder-open"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">LOOKUP DATA OTOMATIS</span>
+            </button>
+
+            <!-- Menu 2 -->
+            <button onclick="switchView('menu2', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-address-book"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">ID ORIN GRAMEDIA X KODE BSOFT</span>
+            </button>
+
+            <!-- Menu 3 (EXCEL ONLINE - GAM) -->
+            <button onclick="switchView('menu3', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-box"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">Report Stock Status Gramedia (GAM)</span>
+            </button>
+
+            <!-- Menu 4 -->
+            <button onclick="switchView('menu4', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">Rekap STO Gramedia</span>
+            </button>
+
+            <!-- Menu 5 -->
+            <button onclick="switchView('menu5', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-chart-column"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">Rekap RO Gramedia 2026</span>
+            </button>
+
+            <!-- Menu 6 -->
+            <button onclick="switchView('menu6', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">E-Catalog Penawaran Gramedia</span>
+            </button>
+
+            <!-- Menu 7 -->
+            <button onclick="switchView('menu7', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">DATA TOKO GRAMEDIA</span>
+            </button>
+
+            <!-- Menu 8 -->
+            <button onclick="switchView('menu8', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">Laku Jual Gramedia 2026 (GAM)</span>
+            </button>
+
+            <!-- Menu 9 -->
+            <button onclick="switchView('menu9', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">Consigment Advice Per Store 2026 (GAM)</span>
+            </button>
+            
+            <div class="h-[1px] bg-white/10 my-4"></div>
+
+            <!-- Menu 10 (Break Room) -->
+            <button onclick="switchView('menu10', this)" class="menu-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition group text-left">
+                <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 group-hover:scale-110 transition icon-box">
+                    <i class="fa-solid fa-mug-hot"></i>
+                </div>
+                <span class="text-gray-300 font-medium text-[13px] leading-tight flex-1">BREAK ROOM</span>
+            </button>
+        </nav>
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        
-        <!-- Top Navbar -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shadow-sm z-10">
-            <div class="flex items-center gap-4">
-                <!-- Hamburger Menu -->
-                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 focus:outline-none p-2 rounded-md hover:bg-slate-100 transition-colors">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
-                
-                <!-- Search Bar -->
-                <div class="relative hidden sm:block ml-2">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="globalSearch" placeholder="Cari menu atau data..." 
-                           class="pl-10 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all w-64 focus:w-80 outline-none">
-                </div>
-            </div>
+    <main class="flex-1 flex flex-col h-full relative p-4 lg:p-8 overflow-hidden bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center">
+        <!-- Overlay Gelap untuk Background Image Utama -->
+        <div class="absolute inset-0 bg-dark/90 backdrop-blur-3xl"></div>
 
-            <!-- Top Right Icons -->
-            <div class="flex items-center gap-3 md:gap-5">
-                <button class="text-slate-400 hover:text-primary transition relative">
-                    <i class="fa-regular fa-bell text-xl"></i>
-                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white text-[9px] text-white flex items-center justify-center font-bold">3</span>
-                </button>
+        <!-- Top Header Info -->
+        <header class="relative z-10 flex justify-between items-start mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Twidy Console</h1>
+                <p id="current-date" class="text-textDim text-sm mt-1"></p>
+            </div>
+            
+            <!-- Widget Panel Kanan Atas -->
+            <div class="glass-panel px-4 py-2 rounded-full flex items-center gap-4 border border-white/10">
+                <div class="flex items-center gap-2 text-gray-300">
+                    <i class="fa-solid fa-cloud-sun"></i> <span>28°C</span>
+                </div>
+                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <div class="flex items-center gap-2 text-gray-300">
+                    <i class="fa-solid fa-location-dot"></i> <span>Yogyakarta</span>
+                </div>
+                <div class="w-1 h-1 rounded-full bg-white/20"></div>
+                <div id="current-time" class="font-bold text-white tracking-wide">09:43</div>
             </div>
         </header>
 
-        <!-- Pages Container -->
-        <div class="flex-1 overflow-hidden p-4 md:p-6 bg-slate-50/50">
+        <!-- VIEW: HOME (Landing Page Ala Twidy Console) -->
+        <div id="home" class="view-content active relative z-10 flex-col lg:flex-row gap-6 h-[calc(100%-5rem)]">
             
-            <!-- MENU HOME: LANDING PAGE WLECOME (ACTIVE BY DEFAULT) -->
-            <div id="menu-home" class="menu-content active flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 overflow-y-auto">
-                <div class="max-w-4xl mx-auto w-full">
-                    <div class="mb-8">
-                        <h1 class="text-3xl font-bold text-slate-800 mb-2">Selamat Datang di NexusDash 👋</h1>
-                        <p class="text-slate-500 text-lg">Pusat kendali data dan analitik Anda. Silakan pilih menu di samping untuk memulai.</p>
+            <!-- Kartu Visual Utama Kiri -->
+            <div class="flex-[1.5] relative rounded-[32px] overflow-hidden group interactive-card border border-white/10 shadow-2xl">
+                <!-- Background Image Card Kiri -->
+                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Mansion">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                
+                <!-- Konten Dalam Kartu Kiri -->
+                <div class="absolute inset-0 p-8 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-4xl font-bold text-white mb-2 tracking-tight">AO Dashboard</h2>
+                        <p class="text-gray-300 text-sm">Manage your daily operations efficiently.</p>
                     </div>
 
-                    <!-- Dummy Statistic Cards untuk mempercantik Landing Page -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                            <i class="fa-solid fa-database text-blue-500 text-2xl mb-4"></i>
-                            <h3 class="text-slate-600 font-medium">Total Data Masuk</h3>
-                            <p class="text-3xl font-bold text-slate-800 mt-1">24,592</p>
+                    <!-- Indikator Status Bawah -->
+                    <div class="glass-panel rounded-2xl p-4 flex gap-6 w-fit items-center border border-white/10">
+                        <div class="flex items-center gap-4 pr-6 border-r border-white/10">
+                            <i class="fa-solid fa-wifi text-gray-400"></i>
+                            <div>
+                                <p class="text-white font-semibold text-sm">System Status</p>
+                                <p class="text-xs text-textDim">Network Connection</p>
+                            </div>
+                            <span class="flex items-center gap-2 text-accent text-sm font-bold ml-2">Online <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div></span>
                         </div>
-                        <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
-                            <i class="fa-solid fa-chart-pie text-emerald-500 text-2xl mb-4"></i>
-                            <h3 class="text-slate-600 font-medium">Status Sinkronisasi</h3>
-                            <p class="text-3xl font-bold text-slate-800 mt-1">Aktif</p>
+                        <div class="flex items-center gap-4">
+                            <i class="fa-solid fa-microchip text-gray-400"></i>
+                            <div>
+                                <p class="text-white font-semibold text-sm">Local Memory</p>
+                                <p class="text-xs text-textDim">Browser RAM Usage</p>
+                            </div>
+                            <span class="text-accent text-sm font-bold ml-2">44 MB</span>
                         </div>
-                        <div class="bg-purple-50 p-6 rounded-xl border border-purple-100">
-                            <i class="fa-solid fa-clock-rotate-left text-purple-500 text-2xl mb-4"></i>
-                            <h3 class="text-slate-600 font-medium">Pembaruan Terakhir</h3>
-                            <p class="text-3xl font-bold text-slate-800 mt-1">Hari Ini</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 text-center">
-                        <i class="fa-regular fa-lightbulb text-4xl text-amber-500 mb-4"></i>
-                        <h3 class="text-lg font-bold text-slate-700 mb-2">Tips Penggunaan</h3>
-                        <p class="text-slate-500">Klik menu <strong class="text-primary">Data Spreadsheet</strong> di sidebar untuk melihat *live view* tabel SharePoint Anda. Ruang kerja akan otomatis melebar untuk kenyamanan visual.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- MENU 1: SPREADSHEET EXCEL -->
-            <div id="menu1" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200">
+            <!-- Panel Kanan: Tools & Toggles -->
+            <div class="flex-1 flex flex-col gap-4">
                 
-                <!-- Header Card & Actions -->
-                <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t-xl">
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-800">Laporan Database Excel Online</h2>
-                        <p class="text-sm text-slate-500">Live data dirender melalui Microsoft SharePoint.</p>
+                <!-- Tool 1 -->
+                <div class="glass-panel p-6 rounded-[28px] interactive-card relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-dark font-bold text-lg">
+                                <i class="fa-regular fa-file-pdf"></i>
+                            </div>
+                            <h3 class="text-white font-bold text-lg">Surat Jalan Generator</h3>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle1" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-600 top-0 left-0 transition-all duration-300"/>
+                            <label for="toggle1" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                        </div>
                     </div>
-                    <!-- Action Buttons -->
-                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <p class="text-textDim text-sm">Upload batch PDF Sales Order dan jadikan Surat Jalan otomatis terformat.</p>
+                </div>
+
+                <!-- Tool 2 -->
+                <div class="glass-panel p-6 rounded-[28px] interactive-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <h3 class="text-white font-bold text-lg">Address Label</h3>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle2" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-600 top-0 left-0 transition-all duration-300"/>
+                            <label for="toggle2" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <p class="text-textDim text-sm">Cetak label alamat langsung terhubung dengan database terbaru.</p>
+                </div>
+
+                <!-- Tool 3 -->
+                <div class="glass-panel p-6 rounded-[28px] interactive-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-white font-bold text-lg">
+                                <i class="fa-solid fa-wrench"></i>
+                            </div>
+                            <h3 class="text-white font-bold text-lg">TwidyTools</h3>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" checked name="toggle" id="toggle3" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-600 top-0 left-0 transition-all duration-300"/>
+                            <label for="toggle3" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <p class="text-textDim text-sm">Koleksi utilitas harian, PDF converter, dan akses AI tools terintegrasi.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW: MENU 3 (REPORT STOCK STATUS GAMEDIA) -->
+        <div id="menu3" class="view-content relative z-10 flex-col h-full w-full">
+            <div class="glass-panel rounded-[28px] border border-white/10 h-full flex flex-col overflow-hidden shadow-2xl relative">
+                
+                <!-- Action Header Kaca -->
+                <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-black/20">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Report Stock Status Gramedia (GAM)</h2>
+                            <p class="text-xs text-textDim">Live data connected via Microsoft SharePoint.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
                         <a href="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ" 
                            target="_blank" 
-                           class="flex-1 sm:flex-none text-center px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
-                            <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Buka di Excel
+                           class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition interactive-card flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Full Screen
                         </a>
-                        <!-- Tombol Download Excel dengan parameter &download=1 -->
                         <a href="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ&download=1" 
-                           class="flex-1 sm:flex-none text-center px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700 transition-colors">
-                            <i class="fa-regular fa-file-excel mr-2"></i>Download Excel
+                           class="px-4 py-2 rounded-xl bg-accent hover:bg-accent/80 text-dark font-bold text-sm transition interactive-card flex items-center gap-2 shadow-[0_0_15px_rgba(74,222,128,0.3)]">
+                            <i class="fa-solid fa-download"></i> Download Excel
                         </a>
                     </div>
                 </div>
 
-                <!-- Iframe Container Excel Online -->
-                <div class="flex-1 relative w-full h-full bg-slate-100 rounded-b-xl overflow-hidden">
+                <!-- Iframe Excel Terintegrasi penuh 3D -->
+                <div class="flex-1 w-full relative bg-white/95">
                     <iframe 
                         src="https://phi19453428-my.sharepoint.com/:x:/g/personal/digitaloffice743_st365_tech/IQBshIY5b82MRbb9ao68WthOAfglE3fv5RKz79SineoYwDE?e=2hWYnQ&action=embedview" 
                         class="absolute inset-0 w-full h-full border-none"
-                        title="Microsoft Excel Online Data">
+                        title="Excel Data">
                     </iframe>
                 </div>
             </div>
-
-            <!-- MENU 2-10: PLACEHOLDERS -->
-            <div id="menu2" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center">
-                <i class="fa-solid fa-chart-line text-6xl text-slate-200 mb-4"></i>
-                <h2 class="text-2xl font-bold text-slate-400">Modul Analisis Data</h2>
-                <p class="text-slate-500">Halaman ini belum diisi konten.</p>
-            </div>
-            
-            <div id="menu3" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Manajemen Klien</h2></div>
-            <div id="menu4" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Inventaris</h2></div>
-            <div id="menu5" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Keuangan</h2></div>
-            <div id="menu6" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Jadwal & Tugas</h2></div>
-            <div id="menu7" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Pesan Masuk</h2></div>
-            <div id="menu8" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Kampanye</h2></div>
-            <div id="menu9" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Pengaturan Dashboard</h2></div>
-            <div id="menu10" class="menu-content flex-col h-full w-full bg-white rounded-xl shadow-sm border border-slate-200 p-8 flex items-center justify-center"><h2 class="text-2xl font-bold text-slate-400">Pusat Bantuan</h2></div>
-
         </div>
+
+        <!-- VIEW PLACEHOLDERS (Untuk Menu 1,2,4-10) -->
+        <div id="placeholder" class="view-content relative z-10 flex-col h-full w-full justify-center items-center">
+            <div class="glass-panel p-12 rounded-[32px] text-center max-w-lg interactive-card border border-white/10 shadow-2xl">
+                <div class="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6 border border-white/10">
+                    <i class="fa-solid fa-layer-group text-4xl text-gray-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Modul Segera Hadir</h2>
+                <p class="text-gray-400">Halaman ini belum dihubungkan ke sumber data. Silakan klik menu "Report Stock Status Gramedia" untuk melihat tampilan interaktif 3D.</p>
+            </div>
+        </div>
+
     </main>
 
-    <!-- Javascript Logic -->
+    <!-- Logic Javascript -->
     <script>
-        // Logika Minimize/Maximize Sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-            const textContainers = document.querySelectorAll('.menu-text-container');
+        // Set Waktu dan Tanggal Real-Time
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Format Jam
+            const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-time').innerText = timeString;
 
-            if (window.innerWidth >= 768) {
-                if (sidebar.classList.contains('md:w-sidebar-expanded')) {
-                    sidebar.classList.remove('md:w-sidebar-expanded');
-                    sidebar.classList.add('md:w-sidebar-collapsed');
-                    
-                    textContainers.forEach(el => {
-                        el.style.opacity = '0';
-                        setTimeout(() => el.classList.add('hidden'), 200); 
-                    });
-                } else {
-                    sidebar.classList.remove('md:w-sidebar-collapsed');
-                    sidebar.classList.add('md:w-sidebar-expanded');
-                    
-                    textContainers.forEach(el => {
-                        el.classList.remove('hidden');
-                        setTimeout(() => el.style.opacity = '1', 10); 
-                    });
-                }
+            // Format Tanggal (Jum, 31 Jul 2026)
+            const options = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('id-ID', options);
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Logika Perpindahan Tab Menu 
+        function switchView(targetId, btnElement) {
+            // Sembunyikan semua view
+            document.querySelectorAll('.view-content').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Tampilkan View yang dituju (Jika bukan menu3 atau home, pakai placeholder)
+            if(targetId === 'home' || targetId === 'menu3') {
+                document.getElementById(targetId).classList.add('active');
             } else {
-                sidebar.classList.toggle('-translate-x-full');
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    overlay.classList.add('hidden');
-                } else {
-                    overlay.classList.remove('hidden');
+                document.getElementById('placeholder').classList.add('active');
+            }
+
+            // Reset semua style menu sidebar
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                // Hapus efek aktif dari logo home
+                btn.classList.remove('menu-icon-active');
+                
+                // Hapus efek aktif dari menu list
+                const iconBox = btn.querySelector('.icon-box');
+                if(iconBox) {
+                    iconBox.classList.remove('bg-accent', 'text-dark', 'shadow-[0_0_15px_rgba(74,222,128,0.4)]');
+                }
+            });
+
+            // Berikan efek nyala pada menu yang di-klik
+            if(targetId === 'home') {
+                btnElement.classList.add('menu-icon-active');
+            } else {
+                const activeIconBox = btnElement.querySelector('.icon-box');
+                if(activeIconBox) {
+                    // Paksa warna neon hijau
+                    activeIconBox.className = 'w-8 h-8 rounded-lg flex items-center justify-center transition icon-box bg-accent text-dark shadow-[0_0_15px_rgba(74,222,128,0.4)]';
                 }
             }
         }
-
-        // SPA Hash Map Navigation Logic dengan Fitur Expand/Minimize Otomatis
-        function switchTab(menuId, element, autoMinimize) {
-            const contents = document.querySelectorAll('.menu-content');
-            contents.forEach(content => {
-                content.classList.remove('active');
-            });
-
-            document.getElementById(menuId).classList.add('active');
-
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                item.classList.remove('bg-primary', 'text-white');
-                item.classList.add('hover:bg-slate-800', 'hover:text-white');
-            });
-
-            element.classList.remove('hover:bg-slate-800', 'hover:text-white');
-            element.classList.add('bg-primary', 'text-white');
-
-            const sidebar = document.getElementById('sidebar');
-            
-            if (window.innerWidth >= 768) {
-                // Di Desktop: Jika autoMinimize true (klik data excel), sidebar mengecil agar tampilan luas
-                if (autoMinimize && sidebar.classList.contains('md:w-sidebar-expanded')) {
-                    toggleSidebar();
-                } 
-                // Jika klik menu Beranda, sidebar otomatis membesar kembali
-                else if (!autoMinimize && sidebar.classList.contains('md:w-sidebar-collapsed')) {
-                    toggleSidebar();
-                }
-            } else {
-                // Di Mobile: Tutup menu setelah klik apapun
-                if (!sidebar.classList.contains('-translate-x-full')) {
-                    toggleSidebar();
-                }
-            }
-        }
-
-        // Global Search Simulation
-        document.getElementById('globalSearch').addEventListener('input', function(e) {
-            let val = e.target.value.toLowerCase();
-            const navItems = document.querySelectorAll('.nav-item span');
-            
-            navItems.forEach(span => {
-                let text = span.innerText.toLowerCase();
-                if(text.includes(val)) {
-                    span.parentElement.parentElement.style.display = 'block';
-                } else {
-                    span.parentElement.parentElement.style.display = 'none';
-                }
-            });
-        });
     </script>
 </body>
 </html>
