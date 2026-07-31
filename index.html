@@ -259,7 +259,6 @@
             </div>
 
             <div class="relative group flex items-center justify-center w-full">
-                <!-- UPDATE IKON KE TWIDY TOOLS -->
                 <button id="left-btn-10" onclick="openMenu(10)" class="left-icon-btn w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 border border-transparent">
                     <i class="fa-solid fa-screwdriver-wrench text-base md:text-lg"></i>
                 </button>
@@ -286,7 +285,7 @@
         <!-- Top Header Info -->
         <header class="relative z-10 flex justify-between items-start mb-4 md:mb-6 xl:mb-8">
             <div>
-                <h1 class="text-xl md:text-2xl xl:text-3xl font-bold text-white tracking-tight leading-tight">Gramedia Data Reports</h1>
+                <h1 class="text-xl md:text-2xl xl:text-3xl font-bold text-white tracking-tight leading-tight">Admin TB Dashboard</h1>
                 <p id="current-date" class="text-textDim text-xs md:text-sm mt-0.5 md:mt-1"></p>
             </div>
             
@@ -312,13 +311,14 @@
                 
                 <!-- LAYER 0: HOME -->
                 <div id="view-home" class="view-layer active">
-                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover" alt="Mansion">
+                    <!-- DITAMBAHKAN ID dashboard-img UNTUK EFEK TERANG / GELAP -->
+                    <img id="dashboard-img" src="https://images.unsplash.com/photo-1613490908573-1785501dc65c?q=80&w=2070&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" alt="Mansion">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent"></div>
                     
                     <div class="absolute inset-0 p-5 md:p-8 flex flex-col justify-between">
                         <!-- Judul Kiri Atas -->
                         <div>
-                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-1 md:mb-2 tracking-tight drop-shadow-lg">AO Dashboard</h2>
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-1 md:mb-2 tracking-tight drop-shadow-lg">Admin TB Dashboard</h2>
                             <p class="text-gray-200 text-xs md:text-sm drop-shadow-md">Manage your daily operations efficiently.</p>
                         </div>
                         
@@ -412,7 +412,6 @@
                 <div id="view-twidytools" class="view-layer flex flex-col bg-white">
                     <div class="px-4 md:px-6 py-3 md:py-4 flex justify-between items-center bg-panel border-b border-white/10 shrink-0 gap-2">
                         <div class="flex items-center gap-3 min-w-0">
-                            <!-- Warna mengikuti palet sebelumnya -->
                             <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-[#6e2c33]/20 flex items-center justify-center text-[#e8707e] shrink-0">
                                 <i class="fa-solid fa-screwdriver-wrench text-base md:text-lg"></i>
                             </div>
@@ -422,7 +421,6 @@
                             </div>
                         </div>
                         <div class="flex gap-2 shrink-0">
-                            <!-- Tombol Menu -->
                             <button onclick="toggleRightPanel()" class="flex px-3 py-2 md:px-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium text-sm transition items-center justify-center gap-2">
                                 <i class="fa-solid fa-list-ul"></i> <span class="hidden sm:inline">Menu</span>
                             </button>
@@ -432,7 +430,6 @@
                         </div>
                     </div>
                     <div class="flex-1 w-full relative">
-                        <!-- Menampilkan IFRAME Twidy Tools -->
                         <iframe src="https://twidytools.my.id/" class="absolute inset-0 w-full h-full border-none"></iframe>
                     </div>
                 </div>
@@ -497,7 +494,6 @@
 
                 <div class="h-[1px] bg-white/10 my-1 mx-2"></div>
 
-                <!-- UPDATE NAMA KE TWIDY TOOLS -->
                 <button id="right-btn-10" onclick="openMenu(10)" class="report-menu-btn w-full flex items-center gap-3 md:gap-4 p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-panel/60">
                     <div class="w-10 h-10 rounded-xl bg-[#6e2c33]/80 flex items-center justify-center text-[#e8707e] shrink-0"><i class="fa-solid fa-screwdriver-wrench text-lg"></i></div>
                     <span class="text-left font-semibold text-gray-300 text-xs md:text-[13px] leading-snug whitespace-nowrap">Twidy Tools</span>
@@ -558,7 +554,7 @@
                 link: "https://1drv.ms/x/c/ba6cc96dfc7dbe16/IQD6r59ZeDhKSKSfnNWeoBwfAdVE4kdTxLUsc5DXt4vQaas?e=wJLmwD", 
                 icon: "fa-money-bill-wave", iconBg: "bg-[#1d6b41]/20", iconColor: "text-[#55e896]" 
             },
-            10: { type: 'twidy' } // Update Tipe Menu 10
+            10: { type: 'twidy' }
         };
 
         // Initialize Panel state on load (Tampil jika layar PC)
@@ -580,6 +576,7 @@
         function toggleTheme() {
             const body = document.body;
             const themeIcon = document.getElementById('theme-icon');
+            const dashboardImg = document.getElementById('dashboard-img');
             
             isDarkMode = !isDarkMode;
             
@@ -587,10 +584,16 @@
                 body.classList.remove('light-mode');
                 themeIcon.classList.remove('fa-moon');
                 themeIcon.classList.add('fa-sun');
+                
+                // GAMBAR MALAM (Rumah modern dengan lampu malam & kolam renang)
+                dashboardImg.src = "https://images.unsplash.com/photo-1613490908573-1785501dc65c?q=80&w=2070&auto=format&fit=crop";
             } else {
                 body.classList.add('light-mode');
                 themeIcon.classList.remove('fa-sun');
                 themeIcon.classList.add('fa-moon');
+                
+                // GAMBAR SIANG (Rumah modern cerah yang lama)
+                dashboardImg.src = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop";
             }
         }
 
@@ -628,7 +631,6 @@
             if (data.type === 'lookup') {
                 document.getElementById('view-lookup').classList.add('active');
             } else if (data.type === 'twidy') {
-                // Tampilkan Tampilan Twidy Tools
                 document.getElementById('view-twidytools').classList.add('active');
             } else if (data.type === 'excel') {
                 document.getElementById('view-excel').classList.add('active');
