@@ -138,13 +138,14 @@
                     <table class="w-full text-left text-xs whitespace-nowrap">
                         <thead class="text-slate-300 uppercase bg-slate-800/80 sticky top-0 z-10">
                             <tr>
-                                <th class="px-3 py-2">ID Item</th>
+                                <th class="px-3 py-2">ID ITEM</th>
                                 <th class="px-3 py-2">ISBN</th>
-                                <th class="px-3 py-2">Judul</th>
-                                <th class="px-3 py-2">Pengarang</th>
-                                <th class="px-3 py-2 text-center">Stok</th>
-                                <th class="px-3 py-2 text-right">Harga (GP1)</th>
-                                <th class="px-3 py-2">Kategori (Sub/Gol)</th>
+                                <th class="px-3 py-2">JUDUL</th>
+                                <th class="px-3 py-2">PENGARANG</th>
+                                <th class="px-3 py-2">EDISI</th>
+                                <th class="px-3 py-2 text-center">STOK</th>
+                                <th class="px-3 py-2 text-right">HARGA (GP1)</th>
+                                <th class="px-3 py-2">KATEGORI (SUB/GOL)</th>
                             </tr>
                         </thead>
                         <tbody id="singleTableBody" class="divide-y divide-slate-800/50 text-slate-300"></tbody>
@@ -317,6 +318,7 @@
 
                 const id = row['iditem'] || row[keys[0]] || '';
                 const pengarang = row['pengarang'] || row[keys[2]] || '-';
+                const edisi = row['edisi'] || row[keys[3]] || '-'; // Kolom Edisi
                 const isbn = row['isbn'] || row[keys[5]] || '-';
                 const tahun_terbit = parseInt(row['tahun_terbit'] || row[keys[6]]) || 0;
                 const ukuran_p = row['ukuran_p'] || row[keys[7]] || '-';
@@ -332,7 +334,7 @@
                 const stok = parseInt(row[keys[keys.length - 1]]) || 0;
 
                 const itemObj = { 
-                    id, judul, pengarang, isbn, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, 
+                    id, judul, pengarang, edisi, isbn, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, 
                     tipe, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, rawRow: row 
                 };
                 
@@ -346,7 +348,6 @@
                 if(pengarang && pengarang !== '-') pengarangs.add(pengarang);
             });
 
-            // Populate all select dropdowns by class
             populateSelectClass('select-tipe', types); 
             populateSelectClass('select-subtipe', subTypes);
             populateSelectClass('select-gol', gols); 
@@ -397,7 +398,6 @@
             const hrgMax = hrgMaxStr !== "" ? parseFloat(hrgMaxStr) : 999999999;
 
             return dataArr.filter(d => {
-                // Text Search (only for Single Lookup)
                 if(prefix === 'single' && input !== "") {
                     const matchText = d.id.toLowerCase().includes(input) || 
                                       d.judul.toLowerCase().includes(input) || 
@@ -406,13 +406,11 @@
                     if(!matchText) return false;
                 }
                 
-                // Dropdowns
                 if(tipe && d.tipe !== tipe) return false;
                 if(sub && d.subTipe !== sub) return false;
                 if(gol && d.gol !== gol) return false;
                 if(peng && d.pengarang !== peng) return false;
                 
-                // Ranges
                 if(d.tahun_terbit < thnMin || d.tahun_terbit > thnMax) return false;
                 if(d.stok < stokMin || d.stok > stokMax) return false;
                 if(d.hargaGP1 < hrgMin || d.hargaGP1 > hrgMax) return false;
@@ -445,6 +443,7 @@
                         <td class="px-3 py-2 font-mono text-[11px] text-slate-400">${item.isbn}</td>
                         <td class="px-3 py-2 truncate max-w-[200px]" title="${item.judul}">${item.judul}</td>
                         <td class="px-3 py-2 truncate max-w-[120px]" title="${item.pengarang}">${item.pengarang}</td>
+                        <td class="px-3 py-2">${item.edisi}</td>
                         <td class="px-3 py-2 text-center font-bold ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</td>
                         <td class="px-3 py-2 text-right">Rp ${item.hargaGP1.toLocaleString('id-ID')}</td>
                         <td class="px-3 py-2 text-[10px]"><span class="bg-slate-700 px-1.5 py-0.5 rounded">${katString}</span></td>
@@ -497,10 +496,10 @@
             } else { btn.classList.add('hidden'); }
         }
 
-        // --- 5. BATCH EXCEL (SMART COLUMN DETECT & AUTO-WIDTH) ---
+        // --- 5. BATCH EXCEL ---
         function renderBatchCheckboxes() {
             const container = document.getElementById('column-checkboxes');
-            const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang'];
+            const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang', 'edisi'];
             const stokKeyword = 'saldoawal';
             let html = '';
             rawHeaders.forEach(header => {
@@ -548,7 +547,6 @@
             batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
             if(batchSelectedHeaders.length === 0) return alert("Pilih minimal 1 kolom untuk ditarik!");
 
-            // SMART ID COLUMN DETECTION
             const uploadedHeaders = pendingBatchData[0].map(h => h ? h.toString().toLowerCase().trim() : '');
             const targetKeywords = ['id', 'id item', 'iditem', 'kode', 'kode bsoft', 'item number', 'isbn'];
             let idColIndex = 0; 
@@ -609,14 +607,14 @@
                     const cellLen = row[k] ? row[k].toString().length : 0;
                     if(cellLen > max) max = cellLen;
                 });
-                return { wch: Math.min(max + 2, 50) }; // cap at 50 width
+                return { wch: Math.min(max + 2, 50) };
             });
         }
 
         function exportBatchExcel() {
             if(!currentBatchResult.length) return;
             const ws = XLSX.utils.json_to_sheet(currentBatchResult);
-            ws['!cols'] = getJsonColWidths(currentBatchResult); // Auto Width
+            ws['!cols'] = getJsonColWidths(currentBatchResult);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Batch_Result");
             XLSX.writeFile(wb, "Batch_Custom_Export_BSOFT.xlsx");
@@ -639,15 +637,15 @@
         function exportData(dataSource, type, fileName) {
             if(!dataSource || dataSource.length === 0) return alert('Tidak ada data.');
             
-            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'TAHUN', 'UK. P', 'UK. L', 'HAL', 'SUB TIPE', 'GOLONGAN', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
+            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'UK. P', 'UK. L', 'HAL', 'SUB TIPE', 'GOLONGAN', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
             const formatData = dataSource.map(d => [
-                d.id, d.isbn, d.judul, d.pengarang, d.tahun_terbit, d.ukuran_p, d.ukuran_l, d.jml_halaman,
+                d.id, d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.ukuran_p, d.ukuran_l, d.jml_halaman,
                 d.subTipe, d.gol, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
             ]);
 
             if(type === 'excel') {
                 const ws = XLSX.utils.aoa_to_sheet([...headers, ...formatData]);
-                ws['!cols'] = getAoaColWidths(headers, formatData); // Auto Width
+                ws['!cols'] = getAoaColWidths(headers, formatData);
                 
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Data");
