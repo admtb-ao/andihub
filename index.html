@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSOFT Data Lookup - Optimized</title>
+    <title>BSOFT Data Lookup - Ultimate</title>
     
     <!-- CSS & UI -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,111 +20,42 @@
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
         }
-
         body {
-            margin: 0;
-            overflow-x: hidden;
+            margin: 0; overflow-x: hidden;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #0b1120;
-            color: #f8fafc;
-            min-height: 100vh;
+            background-color: #0b1120; color: #f8fafc; min-height: 100vh;
         }
-
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
         .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 0.75rem;
-            transition: all 0.2s ease;
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 0.75rem;
         }
-
-        .glass-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--glass-border);
-            color: white;
-        }
-        
-        .glass-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        #drop-zone {
-            border: 2px dashed var(--glass-border);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        #drop-zone.dragover {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .loader-overlay {
-            position: fixed;
-            inset: 0;
-            background: #0b1120;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
+        .glass-input { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); color: white; }
+        .glass-input:focus { outline: none; border-color: #3b82f6; background: rgba(15, 23, 42, 0.8); }
+        #drop-zone { border: 2px dashed var(--glass-border); transition: all 0.3s ease; cursor: pointer; }
+        #drop-zone.dragover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .loader-overlay { position: fixed; inset: 0; background: #0b1120; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.3s ease; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.1); border-left-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-
         .table-container { max-height: 500px; overflow-y: auto; }
         .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
         .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
         .table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-        
-        /* Custom Checkbox */
-        .cb-container {
-            display: flex;
-            align-items: center;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            cursor: pointer;
-        }
-        .cb-container input {
-            margin-right: 6px;
-            accent-color: #3b82f6;
-        }
+        .cb-container { display: flex; align-items: center; font-size: 0.8rem; color: #94a3b8; cursor: pointer; }
+        .cb-container input { margin-right: 6px; accent-color: #3b82f6; }
     </style>
 </head>
 <body class="p-4 md:p-6">
 
-    <!-- 3D Background (Optimized particles for performance) -->
+    <!-- 3D Background -->
     <div id="canvas-container"></div>
 
     <!-- Loading Screen -->
     <div id="initLoader" class="loader-overlay">
         <div class="spinner mb-4"></div>
         <h2 class="text-xl font-bold text-blue-400">Menyinkronkan Database...</h2>
-        <p class="text-gray-400 mt-2 text-sm" id="loaderText">Mengambil & memfilter data (Hash Map Processing)</p>
+        <p class="text-gray-400 mt-2 text-sm" id="loaderText">Mengambil & memfilter data...</p>
     </div>
 
     <div class="max-w-7xl mx-auto space-y-6">
@@ -146,19 +77,15 @@
 
         <!-- TAB 1: SINGLE LOOKUP -->
         <section id="single-lookup" class="glass-panel p-6">
-            <h2 class="text-lg font-bold mb-4 flex items-center text-slate-200">
-                Pencarian Manual
-            </h2>
+            <h2 class="text-lg font-bold mb-4 flex items-center text-slate-200">Pencarian Manual</h2>
             <div class="flex flex-col md:flex-row gap-2">
-                <input type="text" id="searchInput" placeholder="Ketik ID, ISBN, atau Judul. (Kosongkan lalu Cari = Tampilkan Semua)" class="glass-input flex-1 px-4 py-2.5 rounded-lg text-sm w-full">
-                <button onclick="executeSearch()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all">
-                    Cari
-                </button>
+                <input type="text" id="searchInput" placeholder="Ketik ID, ISBN, atau Judul. (Kosongkan lalu Cari = Tampilkan Semua)" class="glass-input flex-1 px-4 py-2.5 rounded-lg text-sm w-full" onkeypress="if(event.key === 'Enter') executeSearch()">
+                <button onclick="executeSearch()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all">Cari</button>
             </div>
             
             <div id="singleResultArea" class="mt-6 hidden">
                 <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
-                    <p class="text-xs text-slate-400">Ditemukan: <span id="resultCount" class="font-bold text-white">0</span> (Menampilkan max 300 di layar agar ringan, *Export menarik SEMUA data*)</p>
+                    <p class="text-xs text-slate-400">Ditemukan: <span id="resultCount" class="font-bold text-white">0</span> (Export menarik SEMUA data)</p>
                     <div class="flex gap-2">
                         <button onclick="exportData(currentSingleData, 'excel', 'Hasil_Pencarian_BSOFT')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export Excel</button>
                         <button onclick="exportData(currentSingleData, 'pdf', 'Laporan_Pencarian_BSOFT')" class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export PDF</button>
@@ -179,34 +106,37 @@
                         <tbody id="singleTableBody" class="divide-y divide-slate-800/50 text-slate-300"></tbody>
                     </table>
                 </div>
+                <div class="mt-3 text-center">
+                    <button id="btnLoadMoreSingle" onclick="loadMoreSingle()" class="hidden bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded text-xs transition-colors">Load More Data...</button>
+                </div>
             </div>
         </section>
 
         <!-- TAB 2: BATCH LOOKUP -->
         <section id="batch-lookup" class="glass-panel p-6 hidden">
-            <h2 class="text-lg font-bold mb-4 flex items-center text-slate-200">
-                Pencarian Massal via Excel
-            </h2>
+            <h2 class="text-lg font-bold mb-4 text-slate-200">Pencarian Massal via Excel</h2>
             
-            <div class="mb-5 p-4 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                <h3 class="text-sm font-semibold mb-3 text-slate-300">Pilih kolom yang ingin ditarik ke hasil Export:</h3>
-                <!-- Dynamic Checkboxes will be rendered here -->
-                <div id="column-checkboxes" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-            </div>
-
-            <div id="drop-zone" class="rounded-xl p-8 text-center bg-black/10 flex flex-col items-center relative overflow-hidden group">
+            <div id="drop-zone" class="rounded-xl p-6 text-center bg-black/10 border border-slate-700/50 flex flex-col items-center relative overflow-hidden group mb-5">
                 <input type="file" id="fileInput" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
-                <svg class="w-10 h-10 text-slate-500 group-hover:text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                <p class="text-base font-medium text-slate-300 mb-1">Drag & Drop file Excel di sini</p>
-                <p class="text-xs text-slate-500">Kolom pertama (A) wajib berisi ID ITEM atau ISBN yang dicari</p>
+                <svg class="w-8 h-8 text-slate-500 group-hover:text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <p class="text-sm font-medium text-slate-300" id="fileStatusText">Drag & Drop file Excel di sini atau Klik untuk Upload</p>
             </div>
 
-            <div id="batchResultArea" class="mt-6 hidden">
+            <!-- Area Checklist & Tombol Proses (Muncul setelah file diupload) -->
+            <div id="batchActionArea" class="hidden mb-5 p-4 rounded-lg bg-blue-900/10 border border-blue-500/30">
+                <h3 class="text-sm font-semibold mb-3 text-slate-200 flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    File siap diproses! Pilih kolom yang ingin ditarik ke Excel hasil:
+                </h3>
+                <div id="column-checkboxes" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 max-h-40 overflow-y-auto p-2 bg-black/20 rounded"></div>
+                <button onclick="executeBatchProcess()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold text-sm w-full md:w-auto shadow-lg shadow-blue-900/50">Proses Data Sekarang</button>
+            </div>
+
+            <!-- Hasil Batch -->
+            <div id="batchResultArea" class="mt-4 hidden">
                 <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
                     <h3 class="text-sm font-semibold text-emerald-400">Preview Hasil Batch</h3>
-                    <div class="flex gap-2">
-                        <button onclick="exportBatchExcel()" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Download Excel (Sesuai Ceklis)</button>
-                    </div>
+                    <button onclick="exportBatchExcel()" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Download Excel (Sesuai Ceklis)</button>
                 </div>
                 <div class="table-container rounded-lg border border-slate-700/50 bg-black/20">
                     <table class="w-full text-left text-xs whitespace-nowrap" id="batchPreviewTable">
@@ -220,27 +150,54 @@
         <!-- TAB 3: CATALOG -->
         <section id="catalog-lookup" class="glass-panel p-6 hidden">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-slate-200">Katalog Kategori</h2>
+                <h2 class="text-lg font-bold text-slate-200">Katalog Kategori & Filter Data</h2>
                 <div class="flex gap-2">
                     <button onclick="exportData(currentCatalogData, 'excel', 'Katalog_BSOFT')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export Excel</button>
                     <button onclick="exportData(currentCatalogData, 'pdf', 'Katalog_BSOFT')" class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export PDF</button>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
-                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catTipe" onchange="renderCatalog()"><option value="">- Tipe Stok -</option></select>
-                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catSubTipe" onchange="renderCatalog()"><option value="">- Sub Tipe -</option></select>
-                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catGol" onchange="renderCatalog()"><option value="">- Golongan -</option></select>
-                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catPengarang" onchange="renderCatalog()"><option value="">- Pengarang -</option></select>
-                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catTahun" onchange="renderCatalog()"><option value="">- Tahun -</option></select>
-                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catStok" onchange="renderCatalog()">
-                    <option value="">- Semua Stok -</option>
-                    <option value="ready">Tersedia (>0)</option>
-                    <option value="empty">Kosong (=0)</option>
-                </select>
+            <!-- Filter Dropdown & Ranges -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5 p-4 rounded bg-slate-800/30 border border-slate-700/50">
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Kategori Buku</label>
+                    <select class="glass-input w-full px-2 py-1.5 rounded text-xs" id="catTipe" onchange="executeCatalogFilter()"><option value="">Semua Tipe Stok</option></select>
+                    <select class="glass-input w-full px-2 py-1.5 rounded text-xs" id="catSubTipe" onchange="executeCatalogFilter()"><option value="">Semua Sub Tipe</option></select>
+                    <select class="glass-input w-full px-2 py-1.5 rounded text-xs" id="catGol" onchange="executeCatalogFilter()"><option value="">Semua Golongan</option></select>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Pengarang</label>
+                    <select class="glass-input w-full px-2 py-1.5 rounded text-xs" id="catPengarang" onchange="executeCatalogFilter()"><option value="">Semua Pengarang</option></select>
+                </div>
+
+                <!-- Range Tahun Terbit -->
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Rentang Tahun Terbit</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="catTahunMin" placeholder="Min" class="glass-input w-full px-2 py-1.5 rounded text-xs text-center" oninput="executeCatalogFilter()">
+                        <span class="text-slate-500">-</span>
+                        <input type="number" id="catTahunMax" placeholder="Max" class="glass-input w-full px-2 py-1.5 rounded text-xs text-center" oninput="executeCatalogFilter()">
+                    </div>
+                </div>
+
+                <!-- Range Stok -->
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Rentang Sisa Stok</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="catStokMin" placeholder="Min" class="glass-input w-full px-2 py-1.5 rounded text-xs text-center" oninput="executeCatalogFilter()">
+                        <span class="text-slate-500">-</span>
+                        <input type="number" id="catStokMax" placeholder="Max" class="glass-input w-full px-2 py-1.5 rounded text-xs text-center" oninput="executeCatalogFilter()">
+                    </div>
+                </div>
             </div>
-            <p class="text-xs text-slate-400 mb-2">Menampilkan: <span id="catalogCount" class="font-bold">0</span> item. (Render dibatasi 150 kartu agar ringan, Export mengambil semua filter)</p>
+
+            <p class="text-xs text-slate-400 mb-2">Total Ditemukan: <span id="catalogCount" class="font-bold text-white">0</span> item.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3" id="catalogContainer"></div>
+            
+            <div class="mt-4 text-center">
+                <button id="btnLoadMoreCatalog" onclick="loadMoreCatalog()" class="hidden bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded text-xs transition-colors">Load More Data...</button>
+            </div>
         </section>
 
     </div>
@@ -250,21 +207,15 @@
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x0b1120, 0.002);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true }); // antialias false for perf
+        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true }); 
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(1); // Lock pixel ratio for performance
+        renderer.setPixelRatio(1); 
         document.getElementById('canvas-container').appendChild(renderer.domElement);
-
         const geometry = new THREE.BufferGeometry();
-        const particlesCount = 400; // Reduced for performance
-        const posArray = new Float32Array(particlesCount * 3);
-        const colorsArray = new Float32Array(particlesCount * 3);
+        const posArray = new Float32Array(300 * 3), colorsArray = new Float32Array(300 * 3);
         const c1 = new THREE.Color(0x3b82f6), c2 = new THREE.Color(0x8b5cf6);
-
-        for(let i = 0; i < particlesCount * 3; i+=3) {
-            posArray[i] = (Math.random() - 0.5) * 20;
-            posArray[i+1] = (Math.random() - 0.5) * 20;
-            posArray[i+2] = (Math.random() - 0.5) * 15;
+        for(let i = 0; i < 900; i+=3) {
+            posArray[i] = (Math.random() - 0.5) * 20; posArray[i+1] = (Math.random() - 0.5) * 20; posArray[i+2] = (Math.random() - 0.5) * 15;
             const mix = c1.clone().lerp(c2, Math.random());
             colorsArray[i] = mix.r; colorsArray[i+1] = mix.g; colorsArray[i+2] = mix.b;
         }
@@ -272,23 +223,10 @@
         geometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
         const material = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, transparent: true, opacity: 0.5 });
         const particlesMesh = new THREE.Points(geometry, material);
-        scene.add(particlesMesh);
-        camera.position.z = 5;
-
+        scene.add(particlesMesh); camera.position.z = 5;
         let mouseX = 0, mouseY = 0;
-        document.addEventListener('mousemove', e => {
-            mouseX = (e.clientX - window.innerWidth / 2) * 0.0003;
-            mouseY = (e.clientY - window.innerHeight / 2) * 0.0003;
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            particlesMesh.rotation.y += 0.001;
-            camera.position.x += (mouseX - camera.position.x) * 0.05;
-            camera.position.y += (-mouseY - camera.position.y) * 0.05;
-            camera.lookAt(scene.position);
-            renderer.render(scene, camera);
-        }
+        document.addEventListener('mousemove', e => { mouseX = (e.clientX - window.innerWidth / 2) * 0.0003; mouseY = (e.clientY - window.innerHeight / 2) * 0.0003; });
+        function animate() { requestAnimationFrame(animate); particlesMesh.rotation.y += 0.001; camera.position.x += (mouseX - camera.position.x) * 0.05; camera.position.y += (-mouseY - camera.position.y) * 0.05; camera.lookAt(scene.position); renderer.render(scene, camera); }
         animate();
 
         // --- 2. DATA PROCESSING & MAPS ---
@@ -296,52 +234,41 @@
         
         let rawHeaders = [];
         let allData = [];
-        let dataMapById = new Map();
-        let dataMapByIsbn = new Map();
+        let dataMapById = new Map(), dataMapByIsbn = new Map();
         
-        let currentSingleData = []; 
-        let currentCatalogData = [];
+        let currentSingleData = [], singleRenderIndex = 0;
+        let currentCatalogData = [], catalogRenderIndex = 0;
+        const ITEMS_PER_PAGE = 50; // Render limit per chunk (Super fast)
         
-        // Dynamic batch state
+        let pendingBatchData = null; // Store excel data before processing
         let batchSelectedHeaders = [];
         let currentBatchResult = [];
 
         window.onload = () => {
             Papa.parse(GSHEET_CSV_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
+                download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
                     rawHeaders = results.meta.fields || [];
                     processRawData(results.data);
                     renderBatchCheckboxes();
-                    
                     document.getElementById('initLoader').style.opacity = '0';
                     setTimeout(() => document.getElementById('initLoader').classList.add('hidden'), 300);
-                },
-                error: function() {
-                    document.getElementById('loaderText').innerText = "Gagal mengambil data.";
-                    document.getElementById('loaderText').style.color = "#ef4444";
                 }
             });
         };
 
         function processRawData(rawData) {
-            let types = new Set(), subTypes = new Set(), gols = new Set(), pengarangs = new Set(), tahuns = new Set();
+            let types = new Set(), subTypes = new Set(), gols = new Set(), pengarangs = new Set();
             
-            // Map known columns strictly by index for safety based on typical struct, 
-            // but fallback to object keys.
             rawData.forEach(row => {
                 const keys = Object.keys(row);
                 const judul = row['judul'] || row[keys[1]] || '';
-                
-                // EXCLUDE E-BOOK RULE
-                if (judul.trim().toLowerCase().startsWith('*e-')) return;
+                if (judul.trim().toLowerCase().startsWith('*e-')) return; // EXCLUDE E-BOOK
 
                 const id = row['iditem'] || row[keys[0]] || '';
                 const pengarang = row['pengarang'] || row[keys[2]] || '-';
                 const isbn = row['isbn'] || row[keys[5]] || '-';
-                const tahun_terbit = row['tahun_terbit'] || row[keys[6]] || '-';
+                const tahun_terbit = parseInt(row['tahun_terbit'] || row[keys[6]]) || 0;
                 const ukuran_p = row['ukuran_p'] || row[keys[7]] || '-';
                 const ukuran_l = row['ukuran_l'] || row[keys[8]] || '-';
                 const jml_halaman = row['jml_halaman'] || row[keys[9]] || '-';
@@ -349,17 +276,14 @@
                 const subTipe = row['sub_tipe_stok'] || row[keys[12]] || '';
                 const gol = row['golongan'] || row[keys[13]] || '';
                 
-                // Harga & Stok
                 const hargaGP1 = parseFloat(row[keys[14]]) || 0;
                 const hargaGP2 = parseFloat(row[keys[15]]) || 0;
                 const hargaGP3 = parseFloat(row[keys[16]]) || 0;
-                const stokStr = row[keys[keys.length - 1]] || '0'; 
-                const stok = parseInt(stokStr) || 0;
+                const stok = parseInt(row[keys[keys.length - 1]]) || 0;
 
                 const itemObj = { 
                     id, judul, pengarang, isbn, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, 
-                    tipe, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, 
-                    rawRow: row // Keep original row for dynamic batch extraction
+                    tipe, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, rawRow: row 
                 };
                 
                 allData.push(itemObj);
@@ -370,136 +294,150 @@
                 if(subTipe) subTypes.add(subTipe);
                 if(gol) gols.add(gol);
                 if(pengarang && pengarang !== '-') pengarangs.add(pengarang);
-                if(tahun_terbit && tahun_terbit !== '-' && tahun_terbit !== '0') tahuns.add(tahun_terbit);
             });
 
-            populateSelect('catTipe', types);
-            populateSelect('catSubTipe', subTypes);
-            populateSelect('catGol', gols);
-            populateSelect('catPengarang', pengarangs);
-            populateSelect('catTahun', tahuns, true); // true = sort numeric desc
-
-            currentCatalogData = [...allData];
-            renderCatalog();
+            populateSelect('catTipe', types); populateSelect('catSubTipe', subTypes);
+            populateSelect('catGol', gols); populateSelect('catPengarang', pengarangs);
+            
+            executeCatalogFilter(); // init catalog
         }
 
-        function populateSelect(id, set, sortDesc = false) {
+        function populateSelect(id, set) {
             const el = document.getElementById(id);
-            let arr = Array.from(set);
-            if(sortDesc) arr.sort((a,b) => b - a);
-            else arr.sort();
-            
-            arr.forEach(val => {
+            Array.from(set).sort().forEach(val => {
                 const opt = document.createElement('option');
-                opt.value = val; 
-                opt.innerText = val.length > 30 ? val.substring(0,30)+'...' : val;
+                opt.value = val; opt.innerText = val.length > 30 ? val.substring(0,30)+'...' : val;
                 el.appendChild(opt);
             });
         }
 
         function switchTab(tabId) {
             ['single-lookup', 'batch-lookup', 'catalog-lookup'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            ['tab-single', 'tab-batch', 'tab-catalog'].forEach(id => {
-                const el = document.getElementById(id);
-                el.className = "glass-panel px-5 py-2 text-sm font-semibold text-slate-300 hover:text-blue-300";
-            });
+            ['tab-single', 'tab-batch', 'tab-catalog'].forEach(id => document.getElementById(id).className = "glass-panel px-5 py-2 text-sm font-semibold text-slate-300 hover:text-blue-300");
             document.getElementById(tabId + '-lookup').classList.remove('hidden');
-            const active = document.getElementById('tab-' + tabId);
-            active.className = "glass-panel px-5 py-2 text-sm font-semibold text-blue-400 bg-blue-900/20 border-blue-500/30";
+            document.getElementById('tab-' + tabId).className = "glass-panel px-5 py-2 text-sm font-semibold text-blue-400 bg-blue-900/20 border-blue-500/30";
         }
 
-        // --- 3. SINGLE SEARCH ---
+        // --- 3. SINGLE SEARCH (With Pagination Chunking) ---
         function executeSearch() {
             const input = document.getElementById('searchInput').value.toLowerCase().trim();
-            if(input === "") {
-                currentSingleData = [...allData];
-            } else {
-                currentSingleData = allData.filter(item => 
-                    item.id.toLowerCase().includes(input) || 
-                    item.judul.toLowerCase().includes(input) ||
-                    item.isbn.toLowerCase().includes(input)
-                );
-            }
-
-            document.getElementById('resultCount').innerText = currentSingleData.length;
-            const tbody = document.getElementById('singleTableBody');
+            currentSingleData = input === "" ? [...allData] : allData.filter(item => item.id.toLowerCase().includes(input) || item.judul.toLowerCase().includes(input) || item.isbn.toLowerCase().includes(input));
             
-            // Limit render array for DOM performance
-            const renderData = currentSingleData.slice(0, 300);
-            let html = renderData.map(item => `
-                <tr class="hover:bg-slate-800/30 border-b border-slate-800/50">
-                    <td class="px-3 py-2 font-mono text-[11px]">${item.id}</td>
-                    <td class="px-3 py-2 font-mono text-[11px] text-slate-400">${item.isbn}</td>
-                    <td class="px-3 py-2 truncate max-w-[200px]" title="${item.judul}">${item.judul}</td>
-                    <td class="px-3 py-2 text-center font-bold ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</td>
-                    <td class="px-3 py-2 text-right">Rp ${item.hargaGP1.toLocaleString('id-ID')}</td>
-                    <td class="px-3 py-2 text-[10px]"><span class="bg-slate-700 px-1.5 py-0.5 rounded">${item.tipe}</span></td>
-                </tr>
-            `).join('');
-
-            tbody.innerHTML = html;
+            document.getElementById('resultCount').innerText = currentSingleData.length;
+            document.getElementById('singleTableBody').innerHTML = ''; // reset DOM
+            singleRenderIndex = 0;
+            
+            loadMoreSingle(); // Load first chunk
             document.getElementById('singleResultArea').classList.remove('hidden');
         }
 
-        // --- 4. CATALOG LOGIC ---
-        function renderCatalog() {
+        function loadMoreSingle() {
+            const tbody = document.getElementById('singleTableBody');
+            const end = Math.min(singleRenderIndex + ITEMS_PER_PAGE, currentSingleData.length);
+            
+            let htmlChunk = '';
+            for(let i = singleRenderIndex; i < end; i++) {
+                const item = currentSingleData[i];
+                htmlChunk += `
+                    <tr class="hover:bg-slate-800/30 border-b border-slate-800/50">
+                        <td class="px-3 py-2 font-mono text-[11px]">${item.id}</td>
+                        <td class="px-3 py-2 font-mono text-[11px] text-slate-400">${item.isbn}</td>
+                        <td class="px-3 py-2 truncate max-w-[200px]" title="${item.judul}">${item.judul}</td>
+                        <td class="px-3 py-2 text-center font-bold ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</td>
+                        <td class="px-3 py-2 text-right">Rp ${item.hargaGP1.toLocaleString('id-ID')}</td>
+                        <td class="px-3 py-2 text-[10px]"><span class="bg-slate-700 px-1.5 py-0.5 rounded">${item.tipe}</span></td>
+                    </tr>`;
+            }
+            tbody.insertAdjacentHTML('beforeend', htmlChunk);
+            singleRenderIndex = end;
+            
+            const btn = document.getElementById('btnLoadMoreSingle');
+            if(singleRenderIndex < currentSingleData.length) {
+                btn.classList.remove('hidden');
+                btn.innerText = `Load More Data... (${currentSingleData.length - singleRenderIndex} tersisa)`;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        // --- 4. CATALOG LOGIC (With Range & Pagination) ---
+        function executeCatalogFilter() {
             const tipe = document.getElementById('catTipe').value;
             const sub = document.getElementById('catSubTipe').value;
             const gol = document.getElementById('catGol').value;
             const peng = document.getElementById('catPengarang').value;
-            const thn = document.getElementById('catTahun').value;
-            const stokStatus = document.getElementById('catStok').value;
+            
+            const thnMinStr = document.getElementById('catTahunMin').value;
+            const thnMaxStr = document.getElementById('catTahunMax').value;
+            const thnMin = thnMinStr !== "" ? parseInt(thnMinStr) : 0;
+            const thnMax = thnMaxStr !== "" ? parseInt(thnMaxStr) : 99999;
+
+            const stokMinStr = document.getElementById('catStokMin').value;
+            const stokMaxStr = document.getElementById('catStokMax').value;
+            const stokMin = stokMinStr !== "" ? parseInt(stokMinStr) : -99999;
+            const stokMax = stokMaxStr !== "" ? parseInt(stokMaxStr) : 999999;
             
             currentCatalogData = allData.filter(d => {
                 if(tipe && d.tipe !== tipe) return false;
                 if(sub && d.subTipe !== sub) return false;
                 if(gol && d.gol !== gol) return false;
                 if(peng && d.pengarang !== peng) return false;
-                if(thn && d.tahun_terbit !== thn) return false;
-                if(stokStatus === 'ready' && d.stok <= 0) return false;
-                if(stokStatus === 'empty' && d.stok > 0) return false;
+                
+                if(d.tahun_terbit < thnMin || d.tahun_terbit > thnMax) return false;
+                if(d.stok < stokMin || d.stok > stokMax) return false;
+                
                 return true;
             });
             
             document.getElementById('catalogCount').innerText = currentCatalogData.length;
+            document.getElementById('catalogContainer').innerHTML = ''; // reset DOM
+            catalogRenderIndex = 0;
             
-            const container = document.getElementById('catalogContainer');
-            // Hard limit render DOM to 150 items
-            const renderData = currentCatalogData.slice(0, 150);
-            
-            container.innerHTML = renderData.map(item => `
-                <div class="glass-panel p-3 flex flex-col h-full bg-slate-900/40 border border-slate-700/50">
-                    <span class="text-[9px] text-slate-400 font-mono mb-1">${item.id}</span>
-                    <h4 class="font-bold text-[11px] text-slate-100 mb-2 line-clamp-3 leading-snug flex-grow" title="${item.judul}">${item.judul}</h4>
-                    <p class="text-[9px] text-slate-400 mb-2 line-clamp-1">${item.pengarang} (${item.tahun_terbit})</p>
-                    <div class="flex justify-between items-end border-t border-slate-700/50 pt-2">
-                        <div>
-                            <p class="text-[9px] text-slate-500">Stok</p>
-                            <p class="font-bold text-xs ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[9px] text-slate-500">GP1</p>
-                            <p class="font-semibold text-xs text-blue-300">Rp ${(item.hargaGP1/1000).toFixed(0)}k</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            loadMoreCatalog(); // load first chunk
         }
 
-        // --- 5. BATCH EXCEL (DYNAMIC CHECKBOXES) ---
+        function loadMoreCatalog() {
+            const container = document.getElementById('catalogContainer');
+            const end = Math.min(catalogRenderIndex + ITEMS_PER_PAGE, currentCatalogData.length);
+            
+            let htmlChunk = '';
+            for(let i = catalogRenderIndex; i < end; i++) {
+                const item = currentCatalogData[i];
+                htmlChunk += `
+                    <div class="glass-panel p-3 flex flex-col h-full bg-slate-900/40 border border-slate-700/50">
+                        <span class="text-[9px] text-slate-400 font-mono mb-1">${item.id}</span>
+                        <h4 class="font-bold text-[11px] text-slate-100 mb-2 line-clamp-3 leading-snug flex-grow" title="${item.judul}">${item.judul}</h4>
+                        <p class="text-[9px] text-slate-400 mb-2 line-clamp-1">${item.pengarang} (${item.tahun_terbit})</p>
+                        <div class="flex justify-between items-end border-t border-slate-700/50 pt-2">
+                            <div><p class="text-[9px] text-slate-500">Stok</p><p class="font-bold text-xs ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</p></div>
+                            <div class="text-right"><p class="text-[9px] text-slate-500">GP1</p><p class="font-semibold text-xs text-blue-300">Rp ${(item.hargaGP1/1000).toFixed(0)}k</p></div>
+                        </div>
+                    </div>`;
+            }
+            container.insertAdjacentHTML('beforeend', htmlChunk);
+            catalogRenderIndex = end;
+
+            const btn = document.getElementById('btnLoadMoreCatalog');
+            if(catalogRenderIndex < currentCatalogData.length) {
+                btn.classList.remove('hidden');
+                btn.innerText = `Load More Data... (${currentCatalogData.length - catalogRenderIndex} tersisa)`;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        // --- 5. BATCH EXCEL (DELAYED PROCESSING) ---
         function renderBatchCheckboxes() {
             const container = document.getElementById('column-checkboxes');
-            // Pre-select some common headers
-            const defaultChecked = ['iditem', 'judul', 'isbn'];
+            const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang'];
             const stokKeyword = 'saldoawal';
-            
             let html = '';
             rawHeaders.forEach(header => {
                 const isChecked = defaultChecked.includes(header.toLowerCase()) || header.toLowerCase().includes(stokKeyword) ? 'checked' : '';
                 html += `
                     <label class="cb-container" title="${header}">
                         <input type="checkbox" value="${header}" class="batch-col-cb" ${isChecked}>
-                        <span class="truncate">${header.length > 25 ? header.substring(0,25)+'...' : header}</span>
+                        <span class="truncate text-xs">${header.length > 20 ? header.substring(0,20)+'...' : header}</span>
                     </label>
                 `;
             });
@@ -516,65 +454,62 @@
 
         function handleFiles(files) {
             if(!files || files.length === 0) return;
+            const file = files[0];
+            document.getElementById('fileStatusText').innerHTML = `<span class="text-emerald-400 font-bold">${file.name}</span> berhasil dibaca!`;
             
-            // Get selected checkboxes
-            const cbs = document.querySelectorAll('.batch-col-cb:checked');
-            batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
-            
-            if(batchSelectedHeaders.length === 0) {
-                alert("Pilih minimal 1 kolom untuk diexport!");
-                return;
-            }
-
             const reader = new FileReader();
             reader.onload = e => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                processBatchData(jsonData);
+                pendingBatchData = XLSX.utils.sheet_to_json(sheet, {header: 1}); // SIMPAN KE MEMORY, JANGAN PROSES
+                
+                // Munculkan area aksi
+                document.getElementById('batchActionArea').classList.remove('hidden');
+                document.getElementById('batchResultArea').classList.add('hidden');
             };
-            reader.readAsArrayBuffer(files[0]);
+            reader.readAsArrayBuffer(file);
         }
 
-        function processBatchData(dataRows) {
-            currentBatchResult = [];
+        function executeBatchProcess() {
+            if(!pendingBatchData) return alert("Upload file excel terlebih dahulu!");
             
-            for(let i=1; i<dataRows.length; i++) {
-                const row = dataRows[i];
+            // Get selected checkboxes
+            const cbs = document.querySelectorAll('.batch-col-cb:checked');
+            batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
+            
+            if(batchSelectedHeaders.length === 0) return alert("Pilih minimal 1 kolom untuk ditarik!");
+
+            currentBatchResult = [];
+            // Parse pending data
+            for(let i=1; i<pendingBatchData.length; i++) {
+                const row = pendingBatchData[i];
                 if(!row || !row[0]) continue;
                 const query = row[0].toString().trim().toLowerCase();
-                
                 let match = dataMapById.get(query) || dataMapByIsbn.get(query);
                 
-                // Build result row based on selected headers
                 let resultRow = { "Query Pencarian": row[0] };
                 if (match) {
-                    batchSelectedHeaders.forEach(header => {
-                        resultRow[header] = match.rawRow[header] || '-';
-                    });
+                    batchSelectedHeaders.forEach(header => resultRow[header] = match.rawRow[header] || '-');
                     resultRow["Status"] = "Found";
                 } else {
-                    batchSelectedHeaders.forEach(header => {
-                        resultRow[header] = 'Not Found';
-                    });
+                    batchSelectedHeaders.forEach(header => resultRow[header] = 'Not Found');
                     resultRow["Status"] = "Missing";
                 }
                 currentBatchResult.push(resultRow);
             }
             
-            // Render Preview Table (max 100 for speed)
+            // Render Preview Table (max 50)
             const headTr = document.getElementById('batchTableHead');
             const bodyTb = document.getElementById('batchTableBody');
             
+            const previewHeaders = batchSelectedHeaders.slice(0, 4); // Only preview first 4 to fit DOM
             let headHtml = `<tr><th class="px-3 py-2">Query Excel</th>`;
-            // Only preview first 4 columns to fit screen
-            const previewHeaders = batchSelectedHeaders.slice(0, 4);
             previewHeaders.forEach(h => headHtml += `<th class="px-3 py-2 truncate max-w-[150px]" title="${h}">${h}</th>`);
             headHtml += `<th class="px-3 py-2 text-center">Status</th></tr>`;
             headTr.innerHTML = headHtml;
 
-            let bodyHtml = currentBatchResult.slice(0, 100).map(row => {
+            let bodyHtml = currentBatchResult.slice(0, 50).map(row => {
                 let html = `<tr class="border-b border-slate-800/50 ${row.Status === 'Missing' ? 'opacity-50' : ''}">`;
                 html += `<td class="px-3 py-2 font-mono text-[11px]">${row["Query Pencarian"]}</td>`;
                 previewHeaders.forEach(h => html += `<td class="px-3 py-2 text-[11px] truncate max-w-[150px]">${row[h]}</td>`);
@@ -582,7 +517,7 @@
                 return html;
             }).join('');
             
-            if(currentBatchResult.length > 100) bodyHtml += `<tr><td colspan="10" class="text-center py-2 text-slate-500 italic">Menampilkan 100 preview. Export untuk hasil penuh.</td></tr>`;
+            if(currentBatchResult.length > 50) bodyHtml += `<tr><td colspan="10" class="text-center py-3 text-slate-400 italic font-semibold">Terdapat ${currentBatchResult.length} baris sukses diproses. Silakan klik Download Excel untuk melihat hasilnya.</td></tr>`;
             
             bodyTb.innerHTML = bodyHtml;
             document.getElementById('batchResultArea').classList.remove('hidden');
@@ -596,13 +531,11 @@
             XLSX.writeFile(wb, "Batch_Custom_Export_BSOFT.xlsx");
         }
 
-        // --- 6. UNIVERSAL EXPORT (Single & Catalog) ---
-        // Requested Exact Columns: pengarang, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, sub_tipe, stok, golongan, harga (gp1), harga (gp2), harga (gp3)
+        // --- 6. UNIVERSAL EXPORT ---
         function exportData(dataSource, type, fileName) {
             if(!dataSource || dataSource.length === 0) return alert('Tidak ada data.');
             
             const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'TAHUN', 'UK. P', 'UK. L', 'HAL', 'SUB TIPE', 'GOLONGAN', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
-            
             const formatData = dataSource.map(d => [
                 d.id, d.isbn, d.judul, d.pengarang, d.tahun_terbit, d.ukuran_p, d.ukuran_l, d.jml_halaman,
                 d.subTipe, d.gol, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
@@ -613,16 +546,12 @@
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Data");
                 XLSX.writeFile(wb, `${fileName}.xlsx`);
-            } 
-            else if(type === 'pdf') {
+            } else if(type === 'pdf') {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('landscape', 'pt', 'a4');
                 doc.text(`Data BSOFT - ${new Date().toLocaleString('id-ID')}`, 40, 30);
                 doc.autoTable({
-                    startY: 40,
-                    head: headers,
-                    body: formatData,
-                    theme: 'grid',
+                    startY: 40, head: headers, body: formatData, theme: 'grid',
                     styles: { fontSize: 7, font: 'helvetica', cellPadding: 3 },
                     headStyles: { fillColor: [59, 130, 246] },
                     margin: { top: 30, left: 20, right: 20 }
