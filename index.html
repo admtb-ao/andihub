@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSOFT Data Lookup</title>
+    <title>BSOFT Data Lookup - Optimized</title>
     
     <!-- CSS & UI -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,9 +17,8 @@
     
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --accent-glow: 0 0 20px rgba(59, 130, 246, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         body {
@@ -43,25 +42,22 @@
 
         .glass-panel {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-radius: 1rem;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
         }
 
         .glass-input {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--glass-border);
             color: white;
-            transition: all 0.3s ease;
         }
         
         .glass-input:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
             background: rgba(15, 23, 42, 0.8);
         }
 
@@ -74,26 +70,24 @@
         #drop-zone.dragover {
             border-color: #3b82f6;
             background: rgba(59, 130, 246, 0.1);
-            transform: scale(1.02);
         }
 
         .loader-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(10px);
+            background: #0b1120;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.3s ease;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
             border-left-color: #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -102,150 +96,167 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .hidden { display: none !important; }
 
-        .table-container { max-height: 600px; overflow-y: auto; }
-        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-        .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .table-container { max-height: 500px; overflow-y: auto; }
+        .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        .table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        
+        /* Custom Checkbox */
+        .cb-container {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        .cb-container input {
+            margin-right: 6px;
+            accent-color: #3b82f6;
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-6">
 
-    <!-- 3D Background -->
+    <!-- 3D Background (Optimized particles for performance) -->
     <div id="canvas-container"></div>
 
-    <!-- Initial Loading Screen -->
+    <!-- Loading Screen -->
     <div id="initLoader" class="loader-overlay">
         <div class="spinner mb-4"></div>
-        <h2 class="text-xl font-bold text-blue-400">Sinkronisasi Database...</h2>
-        <p class="text-gray-400 mt-2" id="loaderText">Mengambil data dari Google Sheets BSOFT</p>
+        <h2 class="text-xl font-bold text-blue-400">Menyinkronkan Database...</h2>
+        <p class="text-gray-400 mt-2 text-sm" id="loaderText">Mengambil & memfilter data (Hash Map Processing)</p>
     </div>
 
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header -->
-        <header class="text-center py-8 glass-panel">
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
+        <header class="text-center py-6 glass-panel">
+            <h1 class="text-3xl font-extrabold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
                 BSOFT Inventory System
             </h1>
-            <p class="text-slate-300 text-lg">Intelligent Data Lookup & Automation Engine</p>
+            <p class="text-slate-400 text-sm">Automasi Lookup & Management Data</p>
         </header>
 
         <!-- Navigation -->
-        <div class="flex flex-wrap justify-center gap-3 mb-6">
-            <button onclick="switchTab('single')" id="tab-single" class="glass-panel px-6 py-2.5 font-semibold text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] bg-blue-900/20">Single Lookup</button>
-            <button onclick="switchTab('batch')" id="tab-batch" class="glass-panel px-6 py-2.5 font-semibold text-slate-300 hover:text-blue-300 transition-colors">Batch Lookup (Excel)</button>
-            <button onclick="switchTab('catalog')" id="tab-catalog" class="glass-panel px-6 py-2.5 font-semibold text-slate-300 hover:text-blue-300 transition-colors">Katalog Kategori</button>
+        <div class="flex flex-wrap justify-center gap-2 mb-4">
+            <button onclick="switchTab('single')" id="tab-single" class="glass-panel px-5 py-2 text-sm font-semibold text-blue-400 bg-blue-900/20 border-blue-500/30">Single Lookup</button>
+            <button onclick="switchTab('batch')" id="tab-batch" class="glass-panel px-5 py-2 text-sm font-semibold text-slate-300 hover:text-blue-300">Batch Lookup (Excel)</button>
+            <button onclick="switchTab('catalog')" id="tab-catalog" class="glass-panel px-5 py-2 text-sm font-semibold text-slate-300 hover:text-blue-300">Katalog Kategori</button>
         </div>
 
         <!-- TAB 1: SINGLE LOOKUP -->
-        <section id="single-lookup" class="glass-panel p-6 md:p-8">
-            <h2 class="text-xl font-bold mb-5 flex items-center text-slate-200">
-                <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <section id="single-lookup" class="glass-panel p-6">
+            <h2 class="text-lg font-bold mb-4 flex items-center text-slate-200">
                 Pencarian Manual
             </h2>
-            <div class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="searchInput" placeholder="Masukkan ID Item, ISBN, Judul (Kosongkan lalu klik Cari untuk tampilkan semua)" class="glass-input flex-1 px-4 py-3 rounded-lg w-full text-base">
-                <button onclick="executeSearch()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+            <div class="flex flex-col md:flex-row gap-2">
+                <input type="text" id="searchInput" placeholder="Ketik ID, ISBN, atau Judul. (Kosongkan lalu Cari = Tampilkan Semua)" class="glass-input flex-1 px-4 py-2.5 rounded-lg text-sm w-full">
+                <button onclick="executeSearch()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all">
                     Cari
                 </button>
             </div>
             
-            <div id="singleResultArea" class="mt-8 hidden">
-                <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-                    <p class="text-sm text-slate-400">Menampilkan <span id="resultCount" class="font-bold text-white">0</span> data.</p>
+            <div id="singleResultArea" class="mt-6 hidden">
+                <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
+                    <p class="text-xs text-slate-400">Ditemukan: <span id="resultCount" class="font-bold text-white">0</span> (Menampilkan max 300 di layar agar ringan, *Export menarik SEMUA data*)</p>
                     <div class="flex gap-2">
-                        <button onclick="exportSingle('excel')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Export Excel</button>
-                        <button onclick="exportSingle('pdf')" class="bg-rose-600/80 hover:bg-rose-500 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Export PDF</button>
+                        <button onclick="exportData(currentSingleData, 'excel', 'Hasil_Pencarian_BSOFT')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export Excel</button>
+                        <button onclick="exportData(currentSingleData, 'pdf', 'Laporan_Pencarian_BSOFT')" class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export PDF</button>
                     </div>
                 </div>
                 <div class="table-container rounded-lg border border-slate-700/50 bg-black/20">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="text-slate-300 uppercase bg-slate-800/80 sticky top-0 z-10 backdrop-blur-sm">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="text-slate-300 uppercase bg-slate-800/80 sticky top-0 z-10">
                             <tr>
-                                <th class="px-4 py-3">ID Item</th>
-                                <th class="px-4 py-3">ISBN</th>
-                                <th class="px-4 py-3">Judul</th>
-                                <th class="px-4 py-3 text-center">Stok</th>
-                                <th class="px-4 py-3 text-right">Harga (GP1)</th>
-                                <th class="px-4 py-3">Tipe</th>
+                                <th class="px-3 py-2">ID Item</th>
+                                <th class="px-3 py-2">ISBN</th>
+                                <th class="px-3 py-2">Judul</th>
+                                <th class="px-3 py-2 text-center">Stok</th>
+                                <th class="px-3 py-2 text-right">Harga (GP1)</th>
+                                <th class="px-3 py-2">Kategori</th>
                             </tr>
                         </thead>
-                        <tbody id="singleTableBody" class="divide-y divide-slate-800/50 text-slate-300">
-                            <!-- Rows injected here -->
-                        </tbody>
+                        <tbody id="singleTableBody" class="divide-y divide-slate-800/50 text-slate-300"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
         <!-- TAB 2: BATCH LOOKUP -->
-        <section id="batch-lookup" class="glass-panel p-6 md:p-8 hidden">
-            <h2 class="text-xl font-bold mb-5 flex items-center text-slate-200">
-                <svg class="w-5 h-5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                Pencarian Massal
+        <section id="batch-lookup" class="glass-panel p-6 hidden">
+            <h2 class="text-lg font-bold mb-4 flex items-center text-slate-200">
+                Pencarian Massal via Excel
             </h2>
             
-            <div id="drop-zone" class="rounded-xl p-10 text-center bg-black/10 flex flex-col items-center justify-center relative overflow-hidden group">
-                <input type="file" id="fileInput" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
-                <svg class="w-12 h-12 text-slate-500 group-hover:text-blue-400 transition-colors mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                <p class="text-lg font-medium text-slate-300 mb-1">Drag & Drop file Excel</p>
-                <p class="text-xs text-slate-500">Pastikan Kolom A berisi ID ITEM atau ISBN</p>
+            <div class="mb-5 p-4 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                <h3 class="text-sm font-semibold mb-3 text-slate-300">Pilih kolom yang ingin ditarik ke hasil Export:</h3>
+                <!-- Dynamic Checkboxes will be rendered here -->
+                <div id="column-checkboxes" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
             </div>
 
-            <div id="batchResultArea" class="mt-8 hidden">
-                <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-                    <h3 class="text-lg font-semibold text-emerald-400">Hasil Cek Stok</h3>
+            <div id="drop-zone" class="rounded-xl p-8 text-center bg-black/10 flex flex-col items-center relative overflow-hidden group">
+                <input type="file" id="fileInput" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
+                <svg class="w-10 h-10 text-slate-500 group-hover:text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <p class="text-base font-medium text-slate-300 mb-1">Drag & Drop file Excel di sini</p>
+                <p class="text-xs text-slate-500">Kolom pertama (A) wajib berisi ID ITEM atau ISBN yang dicari</p>
+            </div>
+
+            <div id="batchResultArea" class="mt-6 hidden">
+                <div class="flex flex-wrap justify-between items-center mb-3 gap-3">
+                    <h3 class="text-sm font-semibold text-emerald-400">Preview Hasil Batch</h3>
                     <div class="flex gap-2">
-                        <button onclick="exportBatch('excel')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Download Excel</button>
-                        <button onclick="exportBatch('pdf')" class="bg-rose-600/80 hover:bg-rose-500 text-white px-4 py-2 rounded text-sm font-medium transition-colors">Download PDF</button>
+                        <button onclick="exportBatchExcel()" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Download Excel (Sesuai Ceklis)</button>
                     </div>
                 </div>
                 <div class="table-container rounded-lg border border-slate-700/50 bg-black/20">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="text-slate-300 uppercase bg-slate-800/80 sticky top-0 z-10 backdrop-blur-sm">
-                            <tr>
-                                <th class="px-4 py-3">ID Pencarian</th>
-                                <th class="px-4 py-3">Judul Ditemukan</th>
-                                <th class="px-4 py-3 text-center">Stok</th>
-                                <th class="px-4 py-3 text-right">Harga</th>
-                                <th class="px-4 py-3 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="batchTableBody" class="divide-y divide-slate-800/50 text-slate-300">
-                        </tbody>
+                    <table class="w-full text-left text-xs whitespace-nowrap" id="batchPreviewTable">
+                        <thead class="text-slate-300 uppercase bg-slate-800/80 sticky top-0 z-10" id="batchTableHead"></thead>
+                        <tbody id="batchTableBody" class="divide-y divide-slate-800/50 text-slate-300"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
         <!-- TAB 3: CATALOG -->
-        <section id="catalog-lookup" class="glass-panel p-6 md:p-8 hidden">
-            <h2 class="text-xl font-bold mb-5 flex items-center text-slate-200">Katalog Kategori</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <select class="glass-input px-3 py-2 rounded-lg text-sm" id="catTipe" onchange="renderCatalog()"><option value="">-- Semua Tipe Stok --</option></select>
-                <select class="glass-input px-3 py-2 rounded-lg text-sm" id="catSubTipe" onchange="renderCatalog()"><option value="">-- Semua Sub Tipe --</option></select>
-                <select class="glass-input px-3 py-2 rounded-lg text-sm" id="catGol" onchange="renderCatalog()"><option value="">-- Semua Golongan --</option></select>
+        <section id="catalog-lookup" class="glass-panel p-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-200">Katalog Kategori</h2>
+                <div class="flex gap-2">
+                    <button onclick="exportData(currentCatalogData, 'excel', 'Katalog_BSOFT')" class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export Excel</button>
+                    <button onclick="exportData(currentCatalogData, 'pdf', 'Katalog_BSOFT')" class="bg-rose-600/80 hover:bg-rose-500 text-white px-3 py-1.5 rounded text-xs font-medium">Export PDF</button>
+                </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="catalogContainer">
-                <!-- Cards generated here -->
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catTipe" onchange="renderCatalog()"><option value="">- Tipe Stok -</option></select>
+                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catSubTipe" onchange="renderCatalog()"><option value="">- Sub Tipe -</option></select>
+                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catGol" onchange="renderCatalog()"><option value="">- Golongan -</option></select>
+                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catPengarang" onchange="renderCatalog()"><option value="">- Pengarang -</option></select>
+                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catTahun" onchange="renderCatalog()"><option value="">- Tahun -</option></select>
+                <select class="glass-input px-2 py-1.5 rounded text-xs" id="catStok" onchange="renderCatalog()">
+                    <option value="">- Semua Stok -</option>
+                    <option value="ready">Tersedia (>0)</option>
+                    <option value="empty">Kosong (=0)</option>
+                </select>
             </div>
+            <p class="text-xs text-slate-400 mb-2">Menampilkan: <span id="catalogCount" class="font-bold">0</span> item. (Render dibatasi 150 kartu agar ringan, Export mengambil semua filter)</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3" id="catalogContainer"></div>
         </section>
 
     </div>
 
-    <!-- Scripts -->
     <script>
-        // --- 1. THREE.JS BACKGROUND ---
+        // --- 1. LIGHTWEIGHT 3D BACKGROUND ---
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x0b1120, 0.0015);
+        scene.fog = new THREE.FogExp2(0x0b1120, 0.002);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true }); // antialias false for perf
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // optimize performance
+        renderer.setPixelRatio(1); // Lock pixel ratio for performance
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const geometry = new THREE.BufferGeometry();
-        const particlesCount = 1000;
+        const particlesCount = 400; // Reduced for performance
         const posArray = new Float32Array(particlesCount * 3);
         const colorsArray = new Float32Array(particlesCount * 3);
         const c1 = new THREE.Color(0x3b82f6), c2 = new THREE.Color(0x8b5cf6);
@@ -259,139 +270,147 @@
         }
         geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
         geometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
-        const material = new THREE.PointsMaterial({ size: 0.03, vertexColors: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+        const material = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, transparent: true, opacity: 0.5 });
         const particlesMesh = new THREE.Points(geometry, material);
         scene.add(particlesMesh);
         camera.position.z = 5;
 
         let mouseX = 0, mouseY = 0;
         document.addEventListener('mousemove', e => {
-            mouseX = (e.clientX - window.innerWidth / 2) * 0.0005;
-            mouseY = (e.clientY - window.innerHeight / 2) * 0.0005;
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.0003;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.0003;
         });
 
-        const clock = new THREE.Clock();
         function animate() {
             requestAnimationFrame(animate);
-            const et = clock.getElapsedTime();
-            particlesMesh.rotation.y = et * 0.03;
-            camera.position.x += (mouseX * 2 - camera.position.x) * 0.02;
-            camera.position.y += (-mouseY * 2 - camera.position.y) * 0.02;
+            particlesMesh.rotation.y += 0.001;
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY - camera.position.y) * 0.05;
             camera.lookAt(scene.position);
             renderer.render(scene, camera);
         }
         animate();
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
 
-        // --- 2. DATA PROCESSING & HASH MAP ---
+        // --- 2. DATA PROCESSING & MAPS ---
         const GSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1oOR3gFw363uttAx6nFnf1ffVvVjY4v-dxn9C0Ij4VLU/export?format=csv";
         
+        let rawHeaders = [];
         let allData = [];
         let dataMapById = new Map();
         let dataMapByIsbn = new Map();
         
-        // State for export
         let currentSingleData = []; 
-        let currentBatchData = [];
+        let currentCatalogData = [];
+        
+        // Dynamic batch state
+        let batchSelectedHeaders = [];
+        let currentBatchResult = [];
 
         window.onload = () => {
             Papa.parse(GSHEET_CSV_URL, {
                 download: true,
-                header: true, // Use first row as object keys
+                header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
+                    rawHeaders = results.meta.fields || [];
                     processRawData(results.data);
+                    renderBatchCheckboxes();
+                    
                     document.getElementById('initLoader').style.opacity = '0';
-                    setTimeout(() => document.getElementById('initLoader').classList.add('hidden'), 500);
+                    setTimeout(() => document.getElementById('initLoader').classList.add('hidden'), 300);
                 },
-                error: function(err) {
-                    document.getElementById('loaderText').innerText = "Gagal mengambil data. Periksa koneksi atau akses Sheet.";
+                error: function() {
+                    document.getElementById('loaderText').innerText = "Gagal mengambil data.";
                     document.getElementById('loaderText').style.color = "#ef4444";
                 }
             });
         };
 
         function processRawData(rawData) {
-            let types = new Set(), subTypes = new Set(), gols = new Set();
+            let types = new Set(), subTypes = new Set(), gols = new Set(), pengarangs = new Set(), tahuns = new Set();
             
-            rawData.forEach((row, index) => {
-                // Determine keys dynamically in case header names vary slightly. 
-                // Using values fallback based on the typical BSOFT structure if headers are messy.
+            // Map known columns strictly by index for safety based on typical struct, 
+            // but fallback to object keys.
+            rawData.forEach(row => {
                 const keys = Object.keys(row);
-                
-                // Safe extraction
-                const id = row['iditem'] || row[keys[0]] || '';
                 const judul = row['judul'] || row[keys[1]] || '';
+                
+                // EXCLUDE E-BOOK RULE
+                if (judul.trim().toLowerCase().startsWith('*e-')) return;
+
+                const id = row['iditem'] || row[keys[0]] || '';
+                const pengarang = row['pengarang'] || row[keys[2]] || '-';
                 const isbn = row['isbn'] || row[keys[5]] || '-';
+                const tahun_terbit = row['tahun_terbit'] || row[keys[6]] || '-';
+                const ukuran_p = row['ukuran_p'] || row[keys[7]] || '-';
+                const ukuran_l = row['ukuran_l'] || row[keys[8]] || '-';
+                const jml_halaman = row['jml_halaman'] || row[keys[9]] || '-';
                 const tipe = row['tipe_stok'] || row[keys[11]] || '';
                 const subTipe = row['sub_tipe_stok'] || row[keys[12]] || '';
                 const gol = row['golongan'] || row[keys[13]] || '';
                 
-                // Harga GP1 is usually the 15th column (index 14)
-                const hargaStr = row["(select harga_jual from item_harga_jual where iditem_nama_harga = 'GP1' and item_harga_jual.iditem = i.iditem)"] || row[keys[14]] || '0';
-                const harga = parseFloat(hargaStr) || 0;
-                
-                // Stok is usually the last column
+                // Harga & Stok
+                const hargaGP1 = parseFloat(row[keys[14]]) || 0;
+                const hargaGP2 = parseFloat(row[keys[15]]) || 0;
+                const hargaGP3 = parseFloat(row[keys[16]]) || 0;
                 const stokStr = row[keys[keys.length - 1]] || '0'; 
                 const stok = parseInt(stokStr) || 0;
 
-                const itemObj = { id, judul, isbn, tipe, subTipe, gol, harga, stok };
+                const itemObj = { 
+                    id, judul, pengarang, isbn, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, 
+                    tipe, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, 
+                    rawRow: row // Keep original row for dynamic batch extraction
+                };
                 
-                // Populate Array
                 allData.push(itemObj);
-                
-                // Populate Hash Maps for O(1) lookups
                 if(id) dataMapById.set(id.toString().trim().toLowerCase(), itemObj);
                 if(isbn && isbn !== '-') dataMapByIsbn.set(isbn.toString().trim().toLowerCase(), itemObj);
 
-                // Populate Filters
                 if(tipe) types.add(tipe);
                 if(subTipe) subTypes.add(subTipe);
                 if(gol) gols.add(gol);
+                if(pengarang && pengarang !== '-') pengarangs.add(pengarang);
+                if(tahun_terbit && tahun_terbit !== '-' && tahun_terbit !== '0') tahuns.add(tahun_terbit);
             });
 
-            // Fill Select Dropdowns
             populateSelect('catTipe', types);
             populateSelect('catSubTipe', subTypes);
             populateSelect('catGol', gols);
-            
-            // Auto trigger catalog
+            populateSelect('catPengarang', pengarangs);
+            populateSelect('catTahun', tahuns, true); // true = sort numeric desc
+
+            currentCatalogData = [...allData];
             renderCatalog();
         }
 
-        function populateSelect(id, set) {
+        function populateSelect(id, set, sortDesc = false) {
             const el = document.getElementById(id);
-            Array.from(set).sort().forEach(val => {
+            let arr = Array.from(set);
+            if(sortDesc) arr.sort((a,b) => b - a);
+            else arr.sort();
+            
+            arr.forEach(val => {
                 const opt = document.createElement('option');
-                opt.value = val; opt.innerText = val;
+                opt.value = val; 
+                opt.innerText = val.length > 30 ? val.substring(0,30)+'...' : val;
                 el.appendChild(opt);
             });
         }
 
-        // --- 3. UI TABS ---
         function switchTab(tabId) {
             ['single-lookup', 'batch-lookup', 'catalog-lookup'].forEach(id => document.getElementById(id).classList.add('hidden'));
             ['tab-single', 'tab-batch', 'tab-catalog'].forEach(id => {
-                document.getElementById(id).classList.remove('text-blue-400', 'bg-blue-900/20', 'border-blue-500/30', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
-                document.getElementById(id).classList.add('text-slate-300');
+                const el = document.getElementById(id);
+                el.className = "glass-panel px-5 py-2 text-sm font-semibold text-slate-300 hover:text-blue-300";
             });
             document.getElementById(tabId + '-lookup').classList.remove('hidden');
             const active = document.getElementById('tab-' + tabId);
-            active.classList.remove('text-slate-300');
-            active.classList.add('text-blue-400', 'bg-blue-900/20', 'border-blue-500/30', 'shadow-[0_0_15px_rgba(59,130,246,0.15)]');
+            active.className = "glass-panel px-5 py-2 text-sm font-semibold text-blue-400 bg-blue-900/20 border-blue-500/30";
         }
 
-        // --- 4. SINGLE SEARCH LOGIC ---
+        // --- 3. SINGLE SEARCH ---
         function executeSearch() {
             const input = document.getElementById('searchInput').value.toLowerCase().trim();
-            const area = document.getElementById('singleResultArea');
-            const tbody = document.getElementById('singleTableBody');
-            
-            // If empty, show all. Otherwise filter.
             if(input === "") {
                 currentSingleData = [...allData];
             } else {
@@ -403,35 +422,90 @@
             }
 
             document.getElementById('resultCount').innerText = currentSingleData.length;
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('singleTableBody');
             
-            // Limit render to 500 items max in DOM to prevent freezing, but keep array full for Export
-            const renderLimit = Math.min(currentSingleData.length, 500);
-            let html = '';
-            
-            for(let i=0; i<renderLimit; i++) {
-                const item = currentSingleData[i];
-                const stockColor = item.stok > 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
-                html += `
-                    <tr class="hover:bg-slate-800/30 transition-colors">
-                        <td class="px-4 py-2 font-mono text-xs">${item.id}</td>
-                        <td class="px-4 py-2 font-mono text-xs text-slate-400">${item.isbn}</td>
-                        <td class="px-4 py-2 truncate max-w-xs" title="${item.judul}">${item.judul}</td>
-                        <td class="px-4 py-2 text-center ${stockColor}">${item.stok}</td>
-                        <td class="px-4 py-2 text-right">Rp ${item.harga.toLocaleString('id-ID')}</td>
-                        <td class="px-4 py-2 text-xs"><span class="bg-slate-700 px-2 py-1 rounded">${item.tipe}</span></td>
-                    </tr>
-                `;
-            }
-            if(currentSingleData.length > 500) {
-                html += `<tr><td colspan="6" class="px-4 py-3 text-center text-slate-400 italic">Menampilkan 500 data pertama. Export untuk melihat seluruh hasil.</td></tr>`;
-            }
+            // Limit render array for DOM performance
+            const renderData = currentSingleData.slice(0, 300);
+            let html = renderData.map(item => `
+                <tr class="hover:bg-slate-800/30 border-b border-slate-800/50">
+                    <td class="px-3 py-2 font-mono text-[11px]">${item.id}</td>
+                    <td class="px-3 py-2 font-mono text-[11px] text-slate-400">${item.isbn}</td>
+                    <td class="px-3 py-2 truncate max-w-[200px]" title="${item.judul}">${item.judul}</td>
+                    <td class="px-3 py-2 text-center font-bold ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</td>
+                    <td class="px-3 py-2 text-right">Rp ${item.hargaGP1.toLocaleString('id-ID')}</td>
+                    <td class="px-3 py-2 text-[10px]"><span class="bg-slate-700 px-1.5 py-0.5 rounded">${item.tipe}</span></td>
+                </tr>
+            `).join('');
 
             tbody.innerHTML = html;
-            area.classList.remove('hidden');
+            document.getElementById('singleResultArea').classList.remove('hidden');
         }
 
-        // --- 5. BATCH LOGIC (EXCEL DRAG DROP) ---
+        // --- 4. CATALOG LOGIC ---
+        function renderCatalog() {
+            const tipe = document.getElementById('catTipe').value;
+            const sub = document.getElementById('catSubTipe').value;
+            const gol = document.getElementById('catGol').value;
+            const peng = document.getElementById('catPengarang').value;
+            const thn = document.getElementById('catTahun').value;
+            const stokStatus = document.getElementById('catStok').value;
+            
+            currentCatalogData = allData.filter(d => {
+                if(tipe && d.tipe !== tipe) return false;
+                if(sub && d.subTipe !== sub) return false;
+                if(gol && d.gol !== gol) return false;
+                if(peng && d.pengarang !== peng) return false;
+                if(thn && d.tahun_terbit !== thn) return false;
+                if(stokStatus === 'ready' && d.stok <= 0) return false;
+                if(stokStatus === 'empty' && d.stok > 0) return false;
+                return true;
+            });
+            
+            document.getElementById('catalogCount').innerText = currentCatalogData.length;
+            
+            const container = document.getElementById('catalogContainer');
+            // Hard limit render DOM to 150 items
+            const renderData = currentCatalogData.slice(0, 150);
+            
+            container.innerHTML = renderData.map(item => `
+                <div class="glass-panel p-3 flex flex-col h-full bg-slate-900/40 border border-slate-700/50">
+                    <span class="text-[9px] text-slate-400 font-mono mb-1">${item.id}</span>
+                    <h4 class="font-bold text-[11px] text-slate-100 mb-2 line-clamp-3 leading-snug flex-grow" title="${item.judul}">${item.judul}</h4>
+                    <p class="text-[9px] text-slate-400 mb-2 line-clamp-1">${item.pengarang} (${item.tahun_terbit})</p>
+                    <div class="flex justify-between items-end border-t border-slate-700/50 pt-2">
+                        <div>
+                            <p class="text-[9px] text-slate-500">Stok</p>
+                            <p class="font-bold text-xs ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[9px] text-slate-500">GP1</p>
+                            <p class="font-semibold text-xs text-blue-300">Rp ${(item.hargaGP1/1000).toFixed(0)}k</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- 5. BATCH EXCEL (DYNAMIC CHECKBOXES) ---
+        function renderBatchCheckboxes() {
+            const container = document.getElementById('column-checkboxes');
+            // Pre-select some common headers
+            const defaultChecked = ['iditem', 'judul', 'isbn'];
+            const stokKeyword = 'saldoawal';
+            
+            let html = '';
+            rawHeaders.forEach(header => {
+                const isChecked = defaultChecked.includes(header.toLowerCase()) || header.toLowerCase().includes(stokKeyword) ? 'checked' : '';
+                html += `
+                    <label class="cb-container" title="${header}">
+                        <input type="checkbox" value="${header}" class="batch-col-cb" ${isChecked}>
+                        <span class="truncate">${header.length > 25 ? header.substring(0,25)+'...' : header}</span>
+                    </label>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
         const dropZone = document.getElementById('drop-zone');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
         ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.add('dragover')));
@@ -442,148 +516,119 @@
 
         function handleFiles(files) {
             if(!files || files.length === 0) return;
+            
+            // Get selected checkboxes
+            const cbs = document.querySelectorAll('.batch-col-cb:checked');
+            batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
+            
+            if(batchSelectedHeaders.length === 0) {
+                alert("Pilih minimal 1 kolom untuk diexport!");
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = e => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                processBatch(jsonData);
+                processBatchData(jsonData);
             };
             reader.readAsArrayBuffer(files[0]);
         }
 
-        function processBatch(dataRows) {
-            const tbody = document.getElementById('batchTableBody');
-            tbody.innerHTML = '';
-            currentBatchData = []; // reset
+        function processBatchData(dataRows) {
+            currentBatchResult = [];
             
-            // Assume first row is header, skip it
             for(let i=1; i<dataRows.length; i++) {
                 const row = dataRows[i];
                 if(!row || !row[0]) continue;
-                
                 const query = row[0].toString().trim().toLowerCase();
                 
-                // O(1) Lookup using Hash Maps!
-                let match = dataMapById.get(query);
-                if(!match) match = dataMapByIsbn.get(query);
+                let match = dataMapById.get(query) || dataMapByIsbn.get(query);
                 
-                const resultRow = {
-                    search_query: row[0],
-                    judul: match ? match.judul : 'Tidak ditemukan',
-                    stok: match ? match.stok : 0,
-                    harga: match ? match.harga : 0,
-                    status: match ? (match.stok > 0 ? 'Tersedia' : 'Kosong') : 'Not Found'
-                };
-                currentBatchData.push(resultRow);
-
-                // Append DOM
-                const trClass = !match ? 'opacity-50' : '';
-                const stockColor = match ? (match.stok > 0 ? 'text-emerald-400' : 'text-rose-400') : 'text-slate-500';
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/30 transition-colors ${trClass}">
-                        <td class="px-4 py-2 font-mono text-xs">${resultRow.search_query}</td>
-                        <td class="px-4 py-2 truncate max-w-xs">${resultRow.judul}</td>
-                        <td class="px-4 py-2 text-center font-bold ${stockColor}">${match ? resultRow.stok : '-'}</td>
-                        <td class="px-4 py-2 text-right">${match ? 'Rp '+resultRow.harga.toLocaleString('id-ID') : '-'}</td>
-                        <td class="px-4 py-2 text-center text-xs">${resultRow.status}</td>
-                    </tr>
-                `;
+                // Build result row based on selected headers
+                let resultRow = { "Query Pencarian": row[0] };
+                if (match) {
+                    batchSelectedHeaders.forEach(header => {
+                        resultRow[header] = match.rawRow[header] || '-';
+                    });
+                    resultRow["Status"] = "Found";
+                } else {
+                    batchSelectedHeaders.forEach(header => {
+                        resultRow[header] = 'Not Found';
+                    });
+                    resultRow["Status"] = "Missing";
+                }
+                currentBatchResult.push(resultRow);
             }
+            
+            // Render Preview Table (max 100 for speed)
+            const headTr = document.getElementById('batchTableHead');
+            const bodyTb = document.getElementById('batchTableBody');
+            
+            let headHtml = `<tr><th class="px-3 py-2">Query Excel</th>`;
+            // Only preview first 4 columns to fit screen
+            const previewHeaders = batchSelectedHeaders.slice(0, 4);
+            previewHeaders.forEach(h => headHtml += `<th class="px-3 py-2 truncate max-w-[150px]" title="${h}">${h}</th>`);
+            headHtml += `<th class="px-3 py-2 text-center">Status</th></tr>`;
+            headTr.innerHTML = headHtml;
+
+            let bodyHtml = currentBatchResult.slice(0, 100).map(row => {
+                let html = `<tr class="border-b border-slate-800/50 ${row.Status === 'Missing' ? 'opacity-50' : ''}">`;
+                html += `<td class="px-3 py-2 font-mono text-[11px]">${row["Query Pencarian"]}</td>`;
+                previewHeaders.forEach(h => html += `<td class="px-3 py-2 text-[11px] truncate max-w-[150px]">${row[h]}</td>`);
+                html += `<td class="px-3 py-2 text-[11px] text-center ${row.Status==='Found' ? 'text-emerald-400' : 'text-rose-400'}">${row.Status}</td></tr>`;
+                return html;
+            }).join('');
+            
+            if(currentBatchResult.length > 100) bodyHtml += `<tr><td colspan="10" class="text-center py-2 text-slate-500 italic">Menampilkan 100 preview. Export untuk hasil penuh.</td></tr>`;
+            
+            bodyTb.innerHTML = bodyHtml;
             document.getElementById('batchResultArea').classList.remove('hidden');
         }
 
-        // --- 6. CATALOG LOGIC ---
-        function renderCatalog() {
-            const selTipe = document.getElementById('catTipe').value;
-            const selSub = document.getElementById('catSubTipe').value;
-            const selGol = document.getElementById('catGol').value;
-            
-            let filtered = allData;
-            if(selTipe) filtered = filtered.filter(d => d.tipe === selTipe);
-            if(selSub) filtered = filtered.filter(d => d.subTipe === selSub);
-            if(selGol) filtered = filtered.filter(d => d.gol === selGol);
-            
-            const container = document.getElementById('catalogContainer');
-            container.innerHTML = '';
-            
-            // Limit render for performance
-            const limit = Math.min(filtered.length, 100);
-            for(let i=0; i<limit; i++) {
-                const item = filtered[i];
-                container.innerHTML += `
-                    <div class="glass-panel p-4 flex flex-col h-full bg-slate-900/30 hover:bg-slate-800/50">
-                        <span class="text-[10px] text-slate-400 font-mono mb-2">${item.id}</span>
-                        <h4 class="font-bold text-sm text-slate-100 mb-4 line-clamp-2 leading-snug flex-grow" title="${item.judul}">${item.judul}</h4>
-                        <div class="flex justify-between items-end border-t border-slate-700/50 pt-2 mt-auto">
-                            <div>
-                                <p class="text-[10px] text-slate-400">Stok</p>
-                                <p class="font-bold text-sm ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-400">Harga (GP1)</p>
-                                <p class="font-semibold text-sm text-blue-300">Rp ${item.harga.toLocaleString('id-ID')}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        // --- 7. EXPORT LOGIC (Clean & formatting independent of DOM) ---
-        function exportSingle(type) {
-            if(!currentSingleData.length) return alert('Tidak ada data untuk diexport.');
-            
-            const formatData = currentSingleData.map(d => [
-                d.id, d.isbn, d.judul, d.tipe, d.stok, d.harga
-            ]);
-            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'TIPE STOK', 'STOK', 'HARGA (GP1)']];
-
-            if(type === 'excel') doExportExcel(headers, formatData, "Hasil_Pencarian_BSOFT");
-            if(type === 'pdf') doExportPDF(headers[0], formatData, "Laporan_Pencarian_BSOFT");
-        }
-
-        function exportBatch(type) {
-            if(!currentBatchData.length) return alert('Tidak ada data untuk diexport.');
-            
-            const formatData = currentBatchData.map(d => [
-                d.search_query, d.judul, d.stok, d.harga, d.status
-            ]);
-            const headers = [['QUERY ID/ISBN', 'JUDUL ITEM', 'STOK', 'HARGA', 'STATUS']];
-
-            if(type === 'excel') doExportExcel(headers, formatData, "Hasil_Batch_Lookup_BSOFT");
-            if(type === 'pdf') doExportPDF(headers[0], formatData, "Laporan_Batch_Lookup_BSOFT");
-        }
-
-        function doExportExcel(headerArray, dataArray, fileName) {
-            const ws = XLSX.utils.aoa_to_sheet([...headerArray, ...dataArray]);
-            // Auto width columns
-            ws['!cols'] = headerArray[0].map((_, i) => ({ wch: i === 1 || i === 2 ? 30 : 15 }));
+        function exportBatchExcel() {
+            if(!currentBatchResult.length) return;
+            const ws = XLSX.utils.json_to_sheet(currentBatchResult);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            XLSX.writeFile(wb, `${fileName}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Batch_Result");
+            XLSX.writeFile(wb, "Batch_Custom_Export_BSOFT.xlsx");
         }
 
-        function doExportPDF(headRow, bodyRows, fileName) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('landscape', 'pt', 'a4');
+        // --- 6. UNIVERSAL EXPORT (Single & Catalog) ---
+        // Requested Exact Columns: pengarang, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, sub_tipe, stok, golongan, harga (gp1), harga (gp2), harga (gp3)
+        function exportData(dataSource, type, fileName) {
+            if(!dataSource || dataSource.length === 0) return alert('Tidak ada data.');
             
-            doc.text(`Dokumen BSOFT Inventory - ${new Date().toLocaleString('id-ID')}`, 40, 40);
+            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'TAHUN', 'UK. P', 'UK. L', 'HAL', 'SUB TIPE', 'GOLONGAN', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
             
-            doc.autoTable({
-                startY: 55,
-                head: [headRow],
-                body: bodyRows,
-                theme: 'grid',
-                styles: { fontSize: 8, font: 'helvetica', cellPadding: 4 },
-                headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
-                alternateRowStyles: { fillColor: [245, 247, 250] },
-                margin: { top: 40, left: 40, right: 40 }
-            });
+            const formatData = dataSource.map(d => [
+                d.id, d.isbn, d.judul, d.pengarang, d.tahun_terbit, d.ukuran_p, d.ukuran_l, d.jml_halaman,
+                d.subTipe, d.gol, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
+            ]);
 
-            doc.save(`${fileName}.pdf`);
+            if(type === 'excel') {
+                const ws = XLSX.utils.aoa_to_sheet([...headers, ...formatData]);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Data");
+                XLSX.writeFile(wb, `${fileName}.xlsx`);
+            } 
+            else if(type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('landscape', 'pt', 'a4');
+                doc.text(`Data BSOFT - ${new Date().toLocaleString('id-ID')}`, 40, 30);
+                doc.autoTable({
+                    startY: 40,
+                    head: headers,
+                    body: formatData,
+                    theme: 'grid',
+                    styles: { fontSize: 7, font: 'helvetica', cellPadding: 3 },
+                    headStyles: { fillColor: [59, 130, 246] },
+                    margin: { top: 30, left: 20, right: 20 }
+                });
+                doc.save(`${fileName}.pdf`);
+            }
         }
     </script>
 </body>
