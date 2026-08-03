@@ -318,7 +318,7 @@
 
                 const id = row['iditem'] || row[keys[0]] || '';
                 const pengarang = row['pengarang'] || row[keys[2]] || '-';
-                const edisi = row['edisi'] || row[keys[3]] || '-'; // Kolom Edisi
+                const edisi = row['edisi'] || row[keys[3]] || '-'; 
                 const isbn = row['isbn'] || row[keys[5]] || '-';
                 const tahun_terbit = parseInt(row['tahun_terbit'] || row[keys[6]]) || 0;
                 const ukuran_p = row['ukuran_p'] || row[keys[7]] || '-';
@@ -374,7 +374,7 @@
             document.getElementById('tab-' + tabId).className = "glass-panel px-5 py-2 text-sm font-semibold text-blue-400 bg-blue-900/20 border-blue-500/30";
         }
 
-        // --- 3. FILTER ENGINE (Shared logic for filtering) ---
+        // --- 3. FILTER ENGINE ---
         function applyFilters(dataArr, prefix) {
             const input = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase().trim() : '';
             const tipe = document.getElementById(prefix + 'Tipe').value;
@@ -437,16 +437,18 @@
             for(let i = singleRenderIndex; i < end; i++) {
                 const item = currentSingleData[i];
                 const katString = `${item.subTipe || '-'} / ${item.gol || '-'}`;
+                
+                // WHITESPACE-NORMAL DITAMBAHKAN AGAR TEKS TURUN KE BAWAH / WRAP (TIDAK KEPOTONG)
                 htmlChunk += `
                     <tr class="hover:bg-slate-800/30 border-b border-slate-800/50">
                         <td class="px-3 py-2 font-mono text-[11px]">${item.id}</td>
                         <td class="px-3 py-2 font-mono text-[11px] text-slate-400">${item.isbn}</td>
-                        <td class="px-3 py-2 truncate max-w-[200px]" title="${item.judul}">${item.judul}</td>
-                        <td class="px-3 py-2 truncate max-w-[120px]" title="${item.pengarang}">${item.pengarang}</td>
-                        <td class="px-3 py-2">${item.edisi}</td>
+                        <td class="px-3 py-2 whitespace-normal min-w-[200px]">${item.judul}</td>
+                        <td class="px-3 py-2 whitespace-normal min-w-[120px]">${item.pengarang}</td>
+                        <td class="px-3 py-2 text-[11px]">${item.edisi}</td>
                         <td class="px-3 py-2 text-center font-bold ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</td>
                         <td class="px-3 py-2 text-right">Rp ${item.hargaGP1.toLocaleString('id-ID')}</td>
-                        <td class="px-3 py-2 text-[10px]"><span class="bg-slate-700 px-1.5 py-0.5 rounded">${katString}</span></td>
+                        <td class="px-3 py-2 text-[10px]"><span class="bg-slate-700 px-1.5 py-0.5 rounded whitespace-normal text-center inline-block min-w-[80px]">${katString}</span></td>
                     </tr>`;
             }
             tbody.insertAdjacentHTML('beforeend', htmlChunk);
@@ -580,14 +582,15 @@
             const previewHeaders = batchSelectedHeaders.slice(0, 4); 
             
             let headHtml = `<tr><th class="px-3 py-2">Query (Col ${idColIndex+1})</th>`;
-            previewHeaders.forEach(h => headHtml += `<th class="px-3 py-2 truncate max-w-[150px]" title="${h}">${h}</th>`);
+            // WHITESPACE-NORMAL DITAMBAHKAN AGAR TEKS WRAP
+            previewHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[150px]">${h}</th>`);
             headHtml += `<th class="px-3 py-2 text-center">Status</th></tr>`;
             headTr.innerHTML = headHtml;
 
             let bodyHtml = currentBatchResult.slice(0, 50).map(row => {
                 let html = `<tr class="border-b border-slate-800/50 ${row.Status === 'Missing' ? 'opacity-50' : ''}">`;
                 html += `<td class="px-3 py-2 font-mono text-[11px]">${row["Query Pencarian"]}</td>`;
-                previewHeaders.forEach(h => html += `<td class="px-3 py-2 text-[11px] truncate max-w-[150px]">${row[h]}</td>`);
+                previewHeaders.forEach(h => html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[150px]">${row[h]}</td>`);
                 html += `<td class="px-3 py-2 text-[11px] text-center ${row.Status==='Found' ? 'text-emerald-400' : 'text-rose-400'}">${row.Status}</td></tr>`;
                 return html;
             }).join('');
