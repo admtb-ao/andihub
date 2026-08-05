@@ -79,7 +79,6 @@
         <section id="single-lookup" class="glass-panel p-6">
             <h2 class="text-lg font-bold mb-4 text-slate-200">Pencarian Manual & Filter</h2>
             
-            <!-- Filter Dropdown & Ranges (Single Lookup) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 p-4 rounded bg-slate-800/30 border border-slate-700/50">
                 <div class="space-y-1">
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Kategori Buku</label>
@@ -165,13 +164,13 @@
                 <input type="file" id="fileInput" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
                 <svg class="w-8 h-8 text-slate-500 group-hover:text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                 <p class="text-sm font-medium text-slate-300" id="fileStatusText">Drag & Drop file Excel di sini atau Klik untuk Upload</p>
-                <p class="text-[10px] text-slate-400 mt-1">Sistem akan otomatis mendeteksi kolom yang bernama ID, KODE, ITEM NUMBER, dll.</p>
+                <p class="text-[10px] text-slate-400 mt-1">Fleksibel: Otomatis membaca kolom ID, Kode, ISBN, atau Judul dari baris pertama datamu.</p>
             </div>
 
             <div id="batchActionArea" class="hidden mb-5 p-4 rounded-lg bg-blue-900/10 border border-blue-500/30">
                 <h3 class="text-sm font-semibold mb-3 text-slate-200 flex items-center">
                     <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    File siap diproses! Pilih kolom yang ingin ditarik ke Excel hasil:
+                    File siap diproses! Centang info tambahan yang ingin ditarik ke Excelmu:
                 </h3>
                 <div id="column-checkboxes" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 max-h-40 overflow-y-auto p-2 bg-black/20 rounded"></div>
                 <button onclick="executeBatchProcess()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold text-sm w-full md:w-auto shadow-lg shadow-blue-900/50">Proses Data Sekarang</button>
@@ -201,7 +200,6 @@
                 </div>
             </div>
             
-            <!-- Filter Dropdown & Ranges (Catalog) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-5 p-4 rounded bg-slate-800/30 border border-slate-700/50">
                 <div class="space-y-1">
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Kategori Buku</label>
@@ -285,7 +283,8 @@
         
         let rawHeaders = [];
         let allData = [];
-        let dataMapById = new Map(), dataMapByIsbn = new Map();
+        // Map tambahan untuk men-support pencarian by ISBN & Judul
+        let dataMapById = new Map(), dataMapByIsbn = new Map(), dataMapByJudul = new Map();
         
         let currentSingleData = [], singleRenderIndex = 0;
         let currentCatalogData = [], catalogRenderIndex = 0;
@@ -339,8 +338,11 @@
                 };
                 
                 allData.push(itemObj);
+                
+                // Mendaftarkan dictionary pencarian
                 if(id) dataMapById.set(id.toString().trim().toLowerCase(), itemObj);
                 if(isbn && isbn !== '-') dataMapByIsbn.set(isbn.toString().trim().toLowerCase(), itemObj);
+                if(judul) dataMapByJudul.set(judul.toString().trim().toLowerCase(), itemObj);
 
                 if(tipe) types.add(tipe);
                 if(subTipe) subTypes.add(subTipe);
@@ -374,7 +376,6 @@
             document.getElementById('tab-' + tabId).className = "glass-panel px-5 py-2 text-sm font-semibold text-blue-400 bg-blue-900/20 border-blue-500/30";
         }
 
-        // --- 3. FILTER ENGINE ---
         function applyFilters(dataArr, prefix) {
             const input = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase().trim() : '';
             const tipe = document.getElementById(prefix + 'Tipe').value;
@@ -419,7 +420,6 @@
             });
         }
 
-        // --- 3.1 SINGLE SEARCH ---
         function executeSearch() {
             currentSingleData = applyFilters(allData, 'single');
             document.getElementById('resultCount').innerText = currentSingleData.length;
@@ -438,7 +438,6 @@
                 const item = currentSingleData[i];
                 const katString = `${item.subTipe || '-'} / ${item.gol || '-'}`;
                 
-                // WHITESPACE-NORMAL DITAMBAHKAN AGAR TEKS TURUN KE BAWAH / WRAP (TIDAK KEPOTONG)
                 htmlChunk += `
                     <tr class="hover:bg-slate-800/30 border-b border-slate-800/50">
                         <td class="px-3 py-2 font-mono text-[11px]">${item.id}</td>
@@ -461,7 +460,6 @@
             } else { btn.classList.add('hidden'); }
         }
 
-        // --- 4. CATALOG LOGIC ---
         function executeCatalogFilter() {
             currentCatalogData = applyFilters(allData, 'cat');
             document.getElementById('catalogCount').innerText = currentCatalogData.length;
@@ -498,14 +496,12 @@
             } else { btn.classList.add('hidden'); }
         }
 
-        // --- 5. BATCH EXCEL ---
         function renderBatchCheckboxes() {
             const container = document.getElementById('column-checkboxes');
-            const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang', 'edisi'];
-            const stokKeyword = 'saldoawal';
+            const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang', 'edisi', 'hargajual_gp1'];
             let html = '';
             rawHeaders.forEach(header => {
-                const isChecked = defaultChecked.includes(header.toLowerCase()) || header.toLowerCase().includes(stokKeyword) ? 'checked' : '';
+                const isChecked = defaultChecked.includes(header.toLowerCase()) ? 'checked' : '';
                 html += `
                     <label class="cb-container" title="${header}">
                         <input type="checkbox" value="${header}" class="batch-col-cb" ${isChecked}>
@@ -547,55 +543,107 @@
             
             const cbs = document.querySelectorAll('.batch-col-cb:checked');
             batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
-            if(batchSelectedHeaders.length === 0) return alert("Pilih minimal 1 kolom untuk ditarik!");
+            if(batchSelectedHeaders.length === 0) return alert("Pilih minimal 1 kolom tambahan untuk ditarik!");
 
-            const uploadedHeaders = pendingBatchData[0].map(h => h ? h.toString().toLowerCase().trim() : '');
-            const targetKeywords = ['id', 'id item', 'iditem', 'kode', 'kode bsoft', 'item number', 'isbn'];
-            let idColIndex = 0; 
+            const originalHeaders = pendingBatchData[0];
+            const uploadedHeaders = originalHeaders.map(h => h ? h.toString().toLowerCase().trim() : '');
+            
+            // LOGIKA HEADER FLEKSIBEL
+            let idColIndex = -1, isbnColIndex = -1, judulColIndex = -1;
+            
             for(let j=0; j<uploadedHeaders.length; j++) {
-                if(targetKeywords.includes(uploadedHeaders[j])) {
-                    idColIndex = j; break;
-                }
+                const h = uploadedHeaders[j];
+                // Cek ID / Kode
+                if(['id', 'kode', 'item', 'no'].some(k => h.includes(k)) && idColIndex === -1) idColIndex = j;
+                // Cek ISBN / Barcode
+                else if(['isbn', 'barcode'].some(k => h.includes(k)) && isbnColIndex === -1) isbnColIndex = j;
+                // Cek Judul / Nama Barang
+                else if(['judul', 'title', 'nama', 'deskripsi'].some(k => h.includes(k)) && judulColIndex === -1) judulColIndex = j;
+            }
+
+            if(idColIndex === -1 && isbnColIndex === -1 && judulColIndex === -1) {
+                return alert("Gagal mendeteksi kolom pencarian. Pastikan header Excel-mu mengandung kata: ID/Kode, ISBN, atau Judul/Nama.");
             }
 
             currentBatchResult = [];
             for(let i=1; i<pendingBatchData.length; i++) {
                 const row = pendingBatchData[i];
-                if(!row || !row[idColIndex]) continue;
+                if(!row || row.length === 0) continue; 
                 
-                const query = row[idColIndex].toString().trim().toLowerCase();
-                let match = dataMapById.get(query) || dataMapByIsbn.get(query);
+                let match = null;
+                let matchedBy = "";
                 
-                let resultRow = { "Query Pencarian": row[idColIndex] };
+                // Urutan Eksekusi Pencarian: ID -> ISBN -> Judul (Jika ditemukan di salah satunya, langsung tarik)
+                if(idColIndex !== -1 && row[idColIndex]) {
+                    const q = row[idColIndex].toString().trim().toLowerCase();
+                    match = dataMapById.get(q);
+                    if(match) matchedBy = "ID";
+                }
+                
+                if(!match && isbnColIndex !== -1 && row[isbnColIndex]) {
+                    const q = row[isbnColIndex].toString().trim().toLowerCase();
+                    match = dataMapByIsbn.get(q);
+                    if(match) matchedBy = "ISBN";
+                }
+                
+                if(!match && judulColIndex !== -1 && row[judulColIndex]) {
+                    const q = row[judulColIndex].toString().trim().toLowerCase();
+                    match = dataMapByJudul.get(q);
+                    if(match) matchedBy = "Judul";
+                }
+                
+                // MENGGABUNGKAN DATA ASLI (TIDAK DIPOTONG) DENGAN DATA HASIL PENCARIAN
+                let resultRow = {};
+                
+                // 1. Masukkan semua kolom dari file Excel aslimu
+                originalHeaders.forEach((h, idx) => {
+                    const colName = h || `Kolom_${idx+1}`;
+                    resultRow[colName] = row[idx] !== undefined ? row[idx] : '';
+                });
+                
+                // 2. Tambahkan kolom hasil tarikan dari database
                 if (match) {
-                    batchSelectedHeaders.forEach(header => resultRow[header] = match.rawRow[header] || '-');
-                    resultRow["Status"] = "Found";
+                    batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = match.rawRow[header] || '-');
+                    resultRow["Status Pencarian"] = `Berhasil (via ${matchedBy})`;
                 } else {
-                    batchSelectedHeaders.forEach(header => resultRow[header] = 'Not Found');
-                    resultRow["Status"] = "Missing";
+                    batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = 'Not Found');
+                    resultRow["Status Pencarian"] = "Gagal Ditemukan";
                 }
                 currentBatchResult.push(resultRow);
             }
             
+            // --- UPDATE TABEL PREVIEW UI ---
             const headTr = document.getElementById('batchTableHead');
             const bodyTb = document.getElementById('batchTableBody');
-            const previewHeaders = batchSelectedHeaders.slice(0, 4); 
             
-            let headHtml = `<tr><th class="px-3 py-2">Query (Col ${idColIndex+1})</th>`;
-            // WHITESPACE-NORMAL DITAMBAHKAN AGAR TEKS WRAP
-            previewHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[150px]">${h}</th>`);
-            headHtml += `<th class="px-3 py-2 text-center">Status</th></tr>`;
+            // Ambil maksimal 3 kolom pertama dari file aslimu + 3 kolom BSOFT buat preview
+            const previewOriginalHeaders = originalHeaders.slice(0, Math.min(originalHeaders.length, 3));
+            const previewBsoftHeaders = batchSelectedHeaders.slice(0, 3); 
+            
+            let headHtml = `<tr>`;
+            previewOriginalHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[120px] bg-slate-700/50">ASLI: ${h}</th>`);
+            previewBsoftHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[150px] text-blue-300">TARIKAN: ${h}</th>`);
+            headHtml += `<th class="px-3 py-2 text-center">STATUS</th></tr>`;
             headTr.innerHTML = headHtml;
 
             let bodyHtml = currentBatchResult.slice(0, 50).map(row => {
-                let html = `<tr class="border-b border-slate-800/50 ${row.Status === 'Missing' ? 'opacity-50' : ''}">`;
-                html += `<td class="px-3 py-2 font-mono text-[11px]">${row["Query Pencarian"]}</td>`;
-                previewHeaders.forEach(h => html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[150px]">${row[h]}</td>`);
-                html += `<td class="px-3 py-2 text-[11px] text-center ${row.Status==='Found' ? 'text-emerald-400' : 'text-rose-400'}">${row.Status}</td></tr>`;
+                let html = `<tr class="border-b border-slate-800/50 ${row["Status Pencarian"] === 'Gagal Ditemukan' ? 'opacity-50' : ''}">`;
+                
+                previewOriginalHeaders.forEach(h => {
+                    const val = row[h || ''] || '';
+                    html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[120px] bg-slate-900/30">${val}</td>`;
+                });
+                
+                previewBsoftHeaders.forEach(h => {
+                    html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[150px] text-blue-100">${row[`BSOFT_${h}`]}</td>`;
+                });
+                
+                const statusColor = row["Status Pencarian"].includes('Berhasil') ? 'text-emerald-400' : 'text-rose-400';
+                html += `<td class="px-3 py-2 text-[11px] text-center ${statusColor}">${row["Status Pencarian"]}</td></tr>`;
                 return html;
             }).join('');
             
-            if(currentBatchResult.length > 50) bodyHtml += `<tr><td colspan="10" class="text-center py-3 text-slate-400 italic font-semibold">Terdapat ${currentBatchResult.length} baris diproses. Klik Download Excel untuk hasil penuh.</td></tr>`;
+            if(currentBatchResult.length > 50) bodyHtml += `<tr><td colspan="10" class="text-center py-3 text-slate-400 italic font-semibold">Terdapat ${currentBatchResult.length} baris diproses. Klik Download Excel untuk melihat semua kolom hasil penuh.</td></tr>`;
             
             bodyTb.innerHTML = bodyHtml;
             document.getElementById('batchResultArea').classList.remove('hidden');
@@ -623,7 +671,6 @@
             XLSX.writeFile(wb, "Batch_Custom_Export_BSOFT.xlsx");
         }
 
-        // --- 6. UNIVERSAL EXPORT (AUTO-WIDTH) ---
         function getAoaColWidths(headers, data) {
             const cols = [];
             headers[0].forEach((h, i) => {
