@@ -164,7 +164,7 @@
                 <input type="file" id="fileInput" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
                 <svg class="w-8 h-8 text-slate-500 group-hover:text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                 <p class="text-sm font-medium text-slate-300" id="fileStatusText">Drag & Drop file Excel di sini atau Klik untuk Upload</p>
-                <p class="text-[10px] text-slate-400 mt-1">Fleksibel: Otomatis membaca kolom ID, Kode, ISBN, atau Judul dari baris pertama datamu.</p>
+                <p class="text-[10px] text-slate-400 mt-1">Smart Engine: Membaca tabel berulang dan summary otomatis.</p>
             </div>
 
             <div id="batchActionArea" class="hidden mb-5 p-4 rounded-lg bg-blue-900/10 border border-blue-500/30">
@@ -283,7 +283,6 @@
         
         let rawHeaders = [];
         let allData = [];
-        // Map tambahan untuk men-support pencarian by ISBN & Judul
         let dataMapById = new Map(), dataMapByIsbn = new Map(), dataMapByJudul = new Map();
         
         let currentSingleData = [], singleRenderIndex = 0;
@@ -339,7 +338,6 @@
                 
                 allData.push(itemObj);
                 
-                // Mendaftarkan dictionary pencarian
                 if(id) dataMapById.set(id.toString().trim().toLowerCase(), itemObj);
                 if(isbn && isbn !== '-') dataMapByIsbn.set(isbn.toString().trim().toLowerCase(), itemObj);
                 if(judul) dataMapByJudul.set(judul.toString().trim().toLowerCase(), itemObj);
@@ -530,7 +528,7 @@
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                pendingBatchData = XLSX.utils.sheet_to_json(sheet, {header: 1}); 
+                pendingBatchData = XLSX.utils.sheet_to_json(sheet, {header: 1}); // Header: 1 membaca per-baris murni tanpa skip
                 
                 document.getElementById('batchActionArea').classList.remove('hidden');
                 document.getElementById('batchResultArea').classList.add('hidden');
@@ -539,76 +537,97 @@
         }
 
         function executeBatchProcess() {
-            if(!pendingBatchData || pendingBatchData.length < 2) return alert("File Excel kosong atau format salah!");
+            if(!pendingBatchData || pendingBatchData.length === 0) return alert("File Excel kosong atau format salah!");
             
             const cbs = document.querySelectorAll('.batch-col-cb:checked');
             batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
             if(batchSelectedHeaders.length === 0) return alert("Pilih minimal 1 kolom tambahan untuk ditarik!");
 
-            const originalHeaders = pendingBatchData[0];
-            const uploadedHeaders = originalHeaders.map(h => h ? h.toString().toLowerCase().trim() : '');
-            
-            // LOGIKA HEADER FLEKSIBEL
+            let maxCols = 0;
+            pendingBatchData.forEach(r => { if(r.length > maxCols) maxCols = r.length; });
+
             let idColIndex = -1, isbnColIndex = -1, judulColIndex = -1;
-            
-            for(let j=0; j<uploadedHeaders.length; j++) {
-                const h = uploadedHeaders[j];
-                // Cek ID / Kode
-                if(['id', 'kode', 'item', 'no'].some(k => h.includes(k)) && idColIndex === -1) idColIndex = j;
-                // Cek ISBN / Barcode
-                else if(['isbn', 'barcode'].some(k => h.includes(k)) && isbnColIndex === -1) isbnColIndex = j;
-                // Cek Judul / Nama Barang
-                else if(['judul', 'title', 'nama', 'deskripsi'].some(k => h.includes(k)) && judulColIndex === -1) judulColIndex = j;
-            }
-
-            if(idColIndex === -1 && isbnColIndex === -1 && judulColIndex === -1) {
-                return alert("Gagal mendeteksi kolom pencarian. Pastikan header Excel-mu mengandung kata: ID/Kode, ISBN, atau Judul/Nama.");
-            }
-
             currentBatchResult = [];
-            for(let i=1; i<pendingBatchData.length; i++) {
+
+            for(let i = 0; i < pendingBatchData.length; i++) {
                 const row = pendingBatchData[i];
-                if(!row || row.length === 0) continue; 
                 
+                // Menghandle baris kosong mutlak
+                if (!row || row.length === 0) {
+                    let emptyRow = {};
+                    for(let c=0; c<maxCols; c++) emptyRow[`Kolom_${c+1}`] = '';
+                    batchSelectedHeaders.forEach(h => emptyRow[`BSOFT_${h}`] = '');
+                    emptyRow["Status Pencarian"] = "";
+                    currentBatchResult.push(emptyRow);
+                    continue;
+                }
+
+                const rowLower = row.map(cell => cell ? cell.toString().toLowerCase().trim() : '');
+
+                // DETEKSI HEADER FLEKSIBEL DI BARIS MANAPUN
+                const isHeader = rowLower.some(c => typeof c === 'string' && ['judul', 'title', 'nama', 'isbn', 'barcode', 'kode', 'id', 'id item', 'iditem'].includes(c));
+
+                let resultRow = {};
+
+                // SALIN SEMUA DATA ASLI (TIDAK ADA YANG DIPOTONG/HILANG)
+                for(let c=0; c<maxCols; c++) {
+                    const colName = `Kolom_${c+1}`;
+                    resultRow[colName] = row[c] !== undefined ? row[c] : '';
+                }
+
+                if (isHeader) {
+                    // Update index kolom setiap menemukan header baru
+                    idColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'id' || c.includes('kode') || c.includes('id item') || c.includes('iditem')));
+                    isbnColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'isbn' || c.includes('barcode')));
+                    judulColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'judul' || c === 'title' || c === 'nama'));
+
+                    batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = `[HEADER BSOFT: ${h.toUpperCase()}]`);
+                    resultRow["Status Pencarian"] = "HEADER DATA";
+                    currentBatchResult.push(resultRow);
+                    continue;
+                }
+
+                // JIKA BUKAN HEADER, CEK APAKAH BARIS INI BISA DI-LOOKUP
                 let match = null;
                 let matchedBy = "";
-                
-                // Urutan Eksekusi Pencarian: ID -> ISBN -> Judul (Jika ditemukan di salah satunya, langsung tarik)
-                if(idColIndex !== -1 && row[idColIndex]) {
-                    const q = row[idColIndex].toString().trim().toLowerCase();
-                    match = dataMapById.get(q);
-                    if(match) matchedBy = "ID";
-                }
-                
-                if(!match && isbnColIndex !== -1 && row[isbnColIndex]) {
-                    const q = row[isbnColIndex].toString().trim().toLowerCase();
-                    match = dataMapByIsbn.get(q);
-                    if(match) matchedBy = "ISBN";
-                }
-                
-                if(!match && judulColIndex !== -1 && row[judulColIndex]) {
-                    const q = row[judulColIndex].toString().trim().toLowerCase();
-                    match = dataMapByJudul.get(q);
-                    if(match) matchedBy = "Judul";
-                }
-                
-                // MENGGABUNGKAN DATA ASLI (TIDAK DIPOTONG) DENGAN DATA HASIL PENCARIAN
-                let resultRow = {};
-                
-                // 1. Masukkan semua kolom dari file Excel aslimu
-                originalHeaders.forEach((h, idx) => {
-                    const colName = h || `Kolom_${idx+1}`;
-                    resultRow[colName] = row[idx] !== undefined ? row[idx] : '';
-                });
-                
-                // 2. Tambahkan kolom hasil tarikan dari database
-                if (match) {
-                    batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = match.rawRow[header] || '-');
-                    resultRow["Status Pencarian"] = `Berhasil (via ${matchedBy})`;
+
+                const valJudul = judulColIndex !== -1 ? (row[judulColIndex] || '').toString().trim().toLowerCase() : '';
+                const valId = idColIndex !== -1 ? (row[idColIndex] || '').toString().trim().toLowerCase() : '';
+                const valIsbn = isbnColIndex !== -1 ? (row[isbnColIndex] || '').toString().trim().toLowerCase() : '';
+
+                // Hindari membaca baris summary seperti "TOTAL QTY"
+                const isSummaryRow = rowLower.some(c => typeof c === 'string' && (c.includes('total') || c.includes('qty') || c.includes('subtotal')));
+
+                if (!isSummaryRow && (valJudul || valId || valIsbn)) {
+                    
+                    if (valId) {
+                        match = dataMapById.get(valId);
+                        if(match) matchedBy = "ID";
+                    }
+
+                    if (!match && valIsbn) {
+                        match = dataMapByIsbn.get(valIsbn);
+                        if(match) matchedBy = "ISBN";
+                    }
+
+                    if (!match && valJudul) {
+                        match = dataMapByJudul.get(valJudul);
+                        if(match) matchedBy = "Judul";
+                    }
+
+                    if (match) {
+                        batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = match.rawRow[header] || '-');
+                        resultRow["Status Pencarian"] = `Berhasil (via ${matchedBy})`;
+                    } else {
+                        batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = 'Not Found');
+                        resultRow["Status Pencarian"] = "Gagal Ditemukan";
+                    }
                 } else {
-                    batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = 'Not Found');
-                    resultRow["Status Pencarian"] = "Gagal Ditemukan";
+                    // Berarti ini baris judul grup ("ID ORIN..."), summary ("TOTAL QTY"), atau kosong
+                    batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = '');
+                    resultRow["Status Pencarian"] = "";
                 }
+
                 currentBatchResult.push(resultRow);
             }
             
@@ -616,34 +635,41 @@
             const headTr = document.getElementById('batchTableHead');
             const bodyTb = document.getElementById('batchTableBody');
             
-            // Ambil maksimal 3 kolom pertama dari file aslimu + 3 kolom BSOFT buat preview
-            const previewOriginalHeaders = originalHeaders.slice(0, Math.min(originalHeaders.length, 3));
+            // Menampilkan preview kolom asli disesuaikan jumlah maksimal (maksimal 4 agar tidak penuh)
+            const previewOriginalCount = Math.min(maxCols, 4); 
             const previewBsoftHeaders = batchSelectedHeaders.slice(0, 3); 
             
             let headHtml = `<tr>`;
-            previewOriginalHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[120px] bg-slate-700/50">ASLI: ${h}</th>`);
-            previewBsoftHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[150px] text-blue-300">TARIKAN: ${h}</th>`);
+            for(let c=1; c<=previewOriginalCount; c++) {
+                headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[120px] bg-slate-700/50">ASLI ${c}</th>`;
+            }
+            previewBsoftHeaders.forEach(h => headHtml += `<th class="px-3 py-2 whitespace-normal min-w-[150px] text-blue-300">TARIKAN ${h}</th>`);
             headHtml += `<th class="px-3 py-2 text-center">STATUS</th></tr>`;
             headTr.innerHTML = headHtml;
 
             let bodyHtml = currentBatchResult.slice(0, 50).map(row => {
-                let html = `<tr class="border-b border-slate-800/50 ${row["Status Pencarian"] === 'Gagal Ditemukan' ? 'opacity-50' : ''}">`;
+                let isHeaderData = row["Status Pencarian"] === "HEADER DATA";
+                let bgClass = isHeaderData ? "bg-blue-900/40 font-bold" : "";
                 
-                previewOriginalHeaders.forEach(h => {
-                    const val = row[h || ''] || '';
-                    html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[120px] bg-slate-900/30">${val}</td>`;
-                });
+                let html = `<tr class="border-b border-slate-800/50 ${row["Status Pencarian"] === 'Gagal Ditemukan' ? 'opacity-50' : ''} ${bgClass}">`;
+                
+                for(let c=1; c<=previewOriginalCount; c++) {
+                    const val = row[`Kolom_${c}`] || '';
+                    html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[120px] ${isHeaderData ? 'text-blue-200' : 'bg-slate-900/30'}">${val}</td>`;
+                }
                 
                 previewBsoftHeaders.forEach(h => {
-                    html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[150px] text-blue-100">${row[`BSOFT_${h}`]}</td>`;
+                    html += `<td class="px-3 py-2 text-[11px] whitespace-normal min-w-[150px] text-blue-100">${row[`BSOFT_${h}`] || ''}</td>`;
                 });
                 
-                const statusColor = row["Status Pencarian"].includes('Berhasil') ? 'text-emerald-400' : 'text-rose-400';
+                const statusColor = row["Status Pencarian"].includes('Berhasil') ? 'text-emerald-400' :
+                                    row["Status Pencarian"] === 'HEADER DATA' ? 'text-blue-300' : 'text-rose-400';
+                                    
                 html += `<td class="px-3 py-2 text-[11px] text-center ${statusColor}">${row["Status Pencarian"]}</td></tr>`;
                 return html;
             }).join('');
             
-            if(currentBatchResult.length > 50) bodyHtml += `<tr><td colspan="10" class="text-center py-3 text-slate-400 italic font-semibold">Terdapat ${currentBatchResult.length} baris diproses. Klik Download Excel untuk melihat semua kolom hasil penuh.</td></tr>`;
+            if(currentBatchResult.length > 50) bodyHtml += `<tr><td colspan="10" class="text-center py-3 text-slate-400 italic font-semibold">Terdapat ${currentBatchResult.length} baris diproses. Klik Download Excel untuk melihat hasil penuh.</td></tr>`;
             
             bodyTb.innerHTML = bodyHtml;
             document.getElementById('batchResultArea').classList.remove('hidden');
