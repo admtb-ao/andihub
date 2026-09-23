@@ -2,12 +2,12 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSOFT Data Lookup - Pro Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AndiHub - Bsoft Inventory System</title>
     
     <!-- CSS & UI -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Data Processing Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -15,294 +15,543 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
-            --glass-bg: rgba(15, 23, 42, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 255, 255, 0.12);
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { primary: '#3b82f6' }
+                }
+            }
         }
-        body {
-            margin: 0; overflow-x: hidden;
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            background-color: #0b0f19; color: #f8fafc; min-height: 100vh;
+        // Cek Tema Awal
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
-        
-        /* Modern Animated Background (Replacing Three.js) */
-        .animated-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #0b0f19; }
-        .blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 12s infinite ease-in-out alternate; }
-        .blob-1 { width: 500px; height: 500px; background: #1e3a8a; top: -150px; left: -100px; }
-        .blob-2 { width: 400px; height: 400px; background: #312e81; bottom: -100px; right: -50px; animation-delay: -6s; }
-        .blob-3 { width: 300px; height: 300px; background: #0f766e; top: 40%; left: 50%; transform: translate(-50%, -50%); animation-delay: -3s; opacity: 0.2; }
-        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(40px, 60px) scale(1.1); } }
+    </script>
 
-        /* Elegant Glassmorphism */
-        .glass-panel {
-            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border); border-radius: 1rem;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-        .glass-panel:hover { border-color: var(--glass-highlight); }
-        
-        /* Inputs & Controls */
-        .glass-input { 
-            background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); color: #e2e8f0; 
-            transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .glass-input:focus { outline: none; border-color: var(--primary); background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+    <style>
+        body { -webkit-font-smoothing: antialiased; padding-bottom: 80px; }
         
         /* Custom Scrollbar */
-        .table-container { max-height: 550px; overflow-y: auto; border-radius: 0.5rem; }
-        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-        .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-        .table-container::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Loader & Animations */
+        .spinner-small { width: 18px; height: 18px; border: 2.5px solid currentColor; border-left-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; opacity: 0.5; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Drag & Drop Zone */
-        #drop-zone { border: 2px dashed rgba(255,255,255,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
-        #drop-zone:hover { border-color: var(--primary); background: rgba(59, 130, 246, 0.05); }
-        #drop-zone.dragover { border-color: var(--primary); background: rgba(59, 130, 246, 0.15); transform: scale(1.02); }
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
         
-        /* Small Spinner for Background Loading */
-        .spinner-small { width: 24px; height: 24px; border: 3px solid rgba(255, 255, 255, 0.1); border-left-color: var(--primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .hidden { display: none !important; }
-        .cb-container { display: flex; align-items: center; font-size: 0.85rem; color: #94a3b8; cursor: pointer; transition: color 0.2s; }
-        .cb-container:hover { color: #e2e8f0; }
-        .cb-container input { margin-right: 8px; accent-color: var(--primary); width: 14px; height: 14px; }
-        
-        /* Table enhancements */
-        table th { letter-spacing: 0.05em; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
-        table td { transition: background 0.2s; }
-        tbody tr:hover td { background-color: rgba(255, 255, 255, 0.03); }
+        /* Modals */
+        .modal-overlay { display: none; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { transform: scale(0.95); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
     </style>
 </head>
-<body class="p-4 md:p-6 lg:p-8">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300 relative min-h-screen">
 
-    <!-- Modern Animated Background -->
-    <div class="animated-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
-
-    <!-- Floating Background Sync Loader (Replaces Fullscreen Loader) -->
-    <div id="bgSyncLoader" class="fixed bottom-6 right-6 bg-slate-900/90 backdrop-blur-md border border-slate-700/50 shadow-2xl rounded-2xl p-4 flex items-center gap-4 z-50 transition-all duration-500 transform translate-y-0 opacity-100">
-        <div class="spinner-small" id="syncSpinner"></div>
-        <div id="syncTextContainer">
-            <h3 class="text-sm font-bold text-white">Menyinkronkan Database...</h3>
-            <p class="text-xs text-slate-400">Berjalan di latar belakang</p>
+    <!-- Sync/Toast Notification -->
+    <div id="bgSyncLoader" class="fixed top-20 right-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 transition-all duration-500 transform translate-y-0 opacity-100">
+        <div class="spinner-small text-blue-600 dark:text-blue-400" id="syncSpinner"></div>
+        <div>
+            <h3 class="text-xs font-bold text-slate-700 dark:text-slate-200" id="syncTitle">Menyinkronkan Database...</h3>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="syncDesc">Berjalan di latar belakang</p>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto space-y-8 relative z-10">
-        
-        <!-- Header -->
-        <header class="text-center py-8 glass-panel">
-            <div class="inline-block mb-3 p-3 rounded-2xl bg-blue-900/30 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-800 sticky top-0 z-40 border-b border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+        <div class="max-w-5xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <svg class="w-8 h-8 text-blue-600 dark:text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h5.5l4.5-9 4.5 9H22L12 2z"/></svg>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800 dark:text-white leading-tight">AndiHub</h1>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-none">Bsoft Inventory System</p>
+                </div>
             </div>
-            <h1 class="text-4xl font-extrabold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-400">
-                BSOFT Inventory System
-            </h1>
-            <p class="text-slate-400 text-sm font-medium tracking-wide uppercase letter-spacing-1">Automasi Lookup & Management Data Pro</p>
-        </header>
+            <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+                <!-- Tombol Search -->
+                <button onclick="focusSearch()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Cari Data"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button>
+                <!-- Tombol Notifikasi -->
+                <button onclick="openModal('notifModal')" class="hover:text-blue-600 dark:hover:text-blue-400 relative transition-colors" title="Notifikasi Export">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span id="notifBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+                </button>
+                <!-- Tombol Tema -->
+                <button onclick="toggleTheme()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Ganti Tema Mode">
+                    <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <!-- Navigation Tabs -->
-        <div class="flex flex-wrap justify-center gap-4 mb-6">
-            <button onclick="switchTab('single')" id="tab-single" class="px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border backdrop-blur-md bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    Single Lookup
+    <main class="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+        <!-- Welcome Banner -->
+        <div class="bg-gradient-to-r from-blue-100 to-blue-200/50 dark:from-blue-900/40 dark:to-slate-800 rounded-2xl p-6 flex justify-between items-center relative overflow-hidden transition-colors duration-300">
+            <div class="relative z-10">
+                <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">SELAMAT DATANG</p>
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Tim AO 👋</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300 max-w-xs">Cari dan kelola data buku dengan cepat, mudah dan akurat.</p>
+            </div>
+            <div class="relative z-10 hidden sm:block">
+                <svg class="w-24 h-24 text-blue-500 dark:text-blue-400 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+            </div>
+            <!-- Decorative Blobs -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-300 dark:bg-blue-600 rounded-full blur-3xl opacity-30 -translate-y-1/2 translate-x-1/3"></div>
+            <div class="absolute bottom-0 left-10 w-24 h-24 bg-blue-400 dark:bg-blue-500 rounded-full blur-2xl opacity-20 translate-y-1/2"></div>
+        </div>
+
+        <!-- Tab Selection -->
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="switchMode('single')" id="btn-single" class="bg-blue-600 text-white rounded-xl p-4 flex items-center justify-between shadow-lg shadow-blue-500/30 transition-transform active:scale-95">
+                <div class="flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Single Lookup</h3>
+                        <p class="text-[10px] text-blue-100 hidden sm:block">Cari data kelola satu per satu</p>
+                    </div>
                 </div>
+                <svg class="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
-            <button onclick="switchTab('batch')" id="tab-batch" class="px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border backdrop-blur-md bg-slate-800/50 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-700/80">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Batch Lookup (Excel)
+            
+            <button onclick="switchMode('batch')" id="btn-batch" class="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-blue-300 dark:hover:border-blue-500 transition-all active:scale-95">
+                <div class="flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm" id="batchTitleTxt">Batch Lookup</h3>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:block">Proses data dari file Excel</p>
+                    </div>
                 </div>
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
         </div>
 
-        <!-- TAB 1: SINGLE LOOKUP -->
-        <section id="single-lookup" class="glass-panel p-6 md:p-8">
-            <div class="flex items-center mb-6 gap-3">
-                <div class="h-8 w-1.5 bg-blue-500 rounded-full"></div>
-                <h2 class="text-xl font-bold text-white">Pencarian & Filter Pintar</h2>
-            </div>
+        <!-- ================= SINGLE LOOKUP ================= -->
+        <div id="view-single" class="tab-content active space-y-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-5 rounded-xl bg-slate-800/40 border border-slate-700/50 shadow-inner">
-                <div class="space-y-2">
-                    <label class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Kategori Buku</label>
-                    <select class="glass-input w-full px-3 py-2 rounded-lg text-xs select-tipe font-medium" id="singleTipe" onchange="executeSearch()"><option value="">Semua Tipe Stok</option></select>
-                    <select class="glass-input w-full px-3 py-2 rounded-lg text-xs select-subtipe font-medium mt-2" id="singleSubTipe" onchange="executeSearch()"><option value="">Semua Sub Tipe</option></select>
-                    <select class="glass-input w-full px-3 py-2 rounded-lg text-xs select-gol font-medium mt-2" id="singleGol" onchange="executeSearch()"><option value="">Semua Golongan</option></select>
-                </div>
-                
-                <div class="space-y-2">
-                    <label class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Pengarang</label>
-                    <select class="glass-input w-full px-3 py-2 rounded-lg text-xs select-pengarang font-medium" id="singlePengarang" onchange="executeSearch()"><option value="">Semua Pengarang</option></select>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Tahun Terbit</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="singleTahunMin" placeholder="Min" class="glass-input w-full px-3 py-2 rounded-lg text-xs text-center font-medium" oninput="executeSearch()">
-                        <span class="text-slate-500 font-bold">-</span>
-                        <input type="number" id="singleTahunMax" placeholder="Max" class="glass-input w-full px-3 py-2 rounded-lg text-xs text-center font-medium" oninput="executeSearch()">
+            <!-- Filter Box -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 transition-colors duration-300">
+                <div class="flex justify-between items-center mb-5">
+                    <div class="flex items-center gap-2 text-slate-800 dark:text-white font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        Filter Pencarian
                     </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Sisa Stok</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="singleStokMin" placeholder="Min" class="glass-input w-full px-3 py-2 rounded-lg text-xs text-center font-medium" oninput="executeSearch()">
-                        <span class="text-slate-500 font-bold">-</span>
-                        <input type="number" id="singleStokMax" placeholder="Max" class="glass-input w-full px-3 py-2 rounded-lg text-xs text-center font-medium" oninput="executeSearch()">
-                    </div>
-                </div>
-                
-                <div class="space-y-2">
-                    <label class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Harga (GP1)</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="singleHargaMin" placeholder="Min Rp" class="glass-input w-full px-3 py-2 rounded-lg text-xs text-center font-medium" oninput="executeSearch()">
-                        <span class="text-slate-500 font-bold">-</span>
-                        <input type="number" id="singleHargaMax" placeholder="Max Rp" class="glass-input w-full px-3 py-2 rounded-lg text-xs text-center font-medium" oninput="executeSearch()">
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex flex-col md:flex-row gap-3">
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <input type="text" id="searchInput" placeholder="Ketik ID, ISBN, Judul, atau Pengarang..." class="glass-input w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium shadow-inner" onkeypress="if(event.key === 'Enter') executeSearch()">
-                </div>
-                <button onclick="executeSearch()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-3.5 rounded-xl font-bold text-sm transition-all transform hover:scale-[1.02] shadow-[0_0_20px_rgba(59,130,246,0.3)] active:scale-95">
-                    Cari Data
-                </button>
-            </div>
-            
-            <div id="singleResultArea" class="mt-8 hidden">
-                <div class="flex flex-wrap justify-between items-end mb-4 gap-4">
-                    <div>
-                        <p class="text-sm text-slate-400 font-medium">Hasil Pencarian</p>
-                        <p class="text-2xl font-bold text-white"><span id="resultCount" class="text-blue-400">0</span> Data Ditemukan</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <button onclick="exportData(currentSingleData, 'excel', 'Hasil_Pencarian_BSOFT')" class="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/50 px-4 py-2 rounded-lg text-xs font-bold transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Export Excel
-                        </button>
-                        <button onclick="exportData(currentSingleData, 'pdf', 'Laporan_Pencarian_BSOFT')" class="flex items-center gap-2 bg-rose-600/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/50 px-4 py-2 rounded-lg text-xs font-bold transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Export PDF
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="table-container rounded-xl border border-slate-700/50 bg-slate-900/50 backdrop-blur-sm shadow-xl">
-                    <table class="w-full text-left text-xs whitespace-nowrap">
-                        <thead class="text-slate-400 bg-slate-800/90 backdrop-blur-md sticky top-0 z-10 border-b border-slate-700/50 shadow-sm">
-                            <tr>
-                                <th class="px-4 py-3">ID ITEM</th>
-                                <th class="px-4 py-3">ISBN</th>
-                                <th class="px-4 py-3">JUDUL</th>
-                                <th class="px-4 py-3">PENGARANG</th>
-                                <th class="px-4 py-3">EDISI</th>
-                                <th class="px-4 py-3 text-center">STOK</th>
-                                <th class="px-4 py-3 text-right">HARGA (GP1)</th>
-                                <th class="px-4 py-3">KATEGORI (SUB/GOL)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="singleTableBody" class="divide-y divide-slate-800/50 text-slate-300 font-medium"></tbody>
-                    </table>
-                </div>
-                
-                <div class="mt-5 text-center">
-                    <button id="btnLoadMoreSingle" onclick="loadMoreSingle()" class="hidden bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-6 py-2.5 rounded-full text-xs font-bold transition-all shadow-lg hover:shadow-xl">Load More Data...</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: BATCH LOOKUP -->
-        <section id="batch-lookup" class="glass-panel p-6 md:p-8 hidden">
-            <div class="flex items-center mb-6 gap-3">
-                <div class="h-8 w-1.5 bg-indigo-500 rounded-full"></div>
-                <h2 class="text-xl font-bold text-white">Pencarian Massal via Excel</h2>
-            </div>
-            
-            <div id="drop-zone" class="rounded-2xl p-10 text-center bg-slate-900/40 flex flex-col items-center relative overflow-hidden group mb-6 shadow-inner">
-                <input type="file" id="fileInput" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
-                <div class="w-16 h-16 mb-4 rounded-full bg-slate-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-900/50 transition-all duration-300">
-                    <svg class="w-8 h-8 text-slate-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                </div>
-                <h3 class="text-lg font-bold text-slate-200 mb-1" id="fileStatusText">Drag & Drop file Excel di sini</h3>
-                <p class="text-sm text-slate-400 mb-3">atau klik untuk memilih file dari komputer Anda</p>
-                <div class="flex items-center gap-2 text-[11px] text-indigo-300 bg-indigo-900/30 px-3 py-1.5 rounded-full border border-indigo-500/20">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A120.18 120.18 0 0010 1a120.18 120.18 0 00-1.3.046l-.5 8.414-8.414.5c.015.434.037.863.046 1.3l8.414.5.5 8.414c.434.015.863.037 1.3.046l.5-8.414 8.414-.5c.009-.437.031-.866.046-1.3l-8.414-.5-.5-8.414z" clip-rule="evenodd"></path></svg>
-                    Smart Engine: Membaca tabel berulang & bypass summary otomatis
-                </div>
-            </div>
-
-            <div id="batchActionArea" class="hidden mb-6 p-6 rounded-xl bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border border-blue-500/30 shadow-lg relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
-                <h3 class="text-base font-bold mb-4 text-white flex items-center gap-2 relative z-10">
-                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    File siap diproses! Pilih data yang ingin ditarik:
-                </h3>
-                <div id="column-checkboxes" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-5 max-h-48 overflow-y-auto p-4 bg-slate-900/50 rounded-lg border border-slate-700/50 relative z-10 custom-scrollbar"></div>
-                <button onclick="executeBatchProcess()" class="relative z-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-3 rounded-xl font-bold text-sm w-full md:w-auto shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all transform hover:scale-[1.02] active:scale-95">
-                    Mulai Proses Batch Engine
-                </button>
-            </div>
-
-            <div id="batchResultArea" class="mt-6 hidden">
-                <div class="flex flex-wrap justify-between items-end mb-4 gap-4">
-                    <div>
-                        <p class="text-sm text-slate-400 font-medium">Status Pemrosesan</p>
-                        <h3 class="text-xl font-bold text-emerald-400">Preview Hasil Batch</h3>
-                    </div>
-                    <button onclick="exportBatchExcel()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all transform hover:scale-[1.02]">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Download Full Excel (Auto-Width)
+                    <button onclick="resetFilters()" class="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 font-medium transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Reset Filter
                     </button>
                 </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+                    <!-- Kategori -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Kategori Buku</label>
+                        <div class="relative">
+                            <select id="singleKategori" onchange="executeSearch()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                                <option value="">Semua Kategori</option>
+                            </select>
+                            <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Pengarang -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Pengarang</label>
+                        <div class="relative">
+                            <select id="singlePengarang" onchange="executeSearch()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                                <option value="">Semua Pengarang</option>
+                            </select>
+                            <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Tahun Terbit (Gabungan Dropdown & MinMax) -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Tahun Terbit</label>
+                        <div class="relative mb-1.5">
+                            <select id="singleTahun" onchange="executeSearch()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 cursor-pointer">
+                                <option value="">Pilih Tahun (Dropdown)</option>
+                            </select>
+                            <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" id="thnMin" placeholder="Min Thn" oninput="executeSearch()" class="w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs rounded-lg px-2.5 py-2 outline-none focus:border-blue-500">
+                            <input type="number" id="thnMax" placeholder="Max Thn" oninput="executeSearch()" class="w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs rounded-lg px-2.5 py-2 outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Sisa Stok -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Sisa Stok</label>
+                        <div class="relative mb-1.5">
+                            <select id="singleStok" onchange="executeSearch()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 cursor-pointer">
+                                <option value="all">Semua Kondisi Stok</option>
+                                <option value="aman">Stok Aman (>= 100)</option>
+                                <option value="kritis">Stok Kritis (1 - 99)</option>
+                                <option value="habis">Stok Habis (0)</option>
+                            </select>
+                            <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" id="stokMin" placeholder="Min Stok" oninput="executeSearch()" class="w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs rounded-lg px-2.5 py-2 outline-none focus:border-blue-500">
+                            <input type="number" id="stokMax" placeholder="Max Stok" oninput="executeSearch()" class="w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs rounded-lg px-2.5 py-2 outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Harga GP1 -->
+                    <div class="space-y-1.5 lg:col-span-2">
+                        <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Harga GP1</label>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <div class="relative w-full sm:w-1/2">
+                                <select id="singleHarga" onchange="executeSearch()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 cursor-pointer">
+                                    <option value="all">Pilih Rentang Harga</option>
+                                    <option value="0-50000">Di bawah Rp 50.000</option>
+                                    <option value="50000-100000">Rp 50.000 - Rp 100.000</option>
+                                    <option value="100000-999999999">Di atas Rp 100.000</option>
+                                </select>
+                                <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-1/2">
+                                <input type="number" id="hrgMin" placeholder="Min Rp" oninput="executeSearch()" class="w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                                <input type="number" id="hrgMax" placeholder="Max Rp" oninput="executeSearch()" class="w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative mt-2">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <!-- Ditambahkan oninput agar live search kembali berfungsi, dan onkeypress untuk simpan riwayat & hilangkan keyboard mobile -->
+                    <input type="text" id="searchInput" placeholder="Cari berdasarkan ID, ISBN, Judul atau Pengarang..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg pl-10 pr-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" oninput="executeSearch()" onkeypress="if(event.key === 'Enter') { saveHistory(this.value); this.blur(); }">
+                </div>
+            </div>
+
+            <!-- Hasil Pencarian -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden transition-colors duration-300">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-wrap gap-2 justify-between items-center bg-white dark:bg-slate-800">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        <h3 class="font-bold text-slate-800 dark:text-white text-sm">Hasil Pencarian</h3>
+                        <span class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold px-2 py-0.5 rounded-md" id="resultCountBadge">0 data</span>
+                    </div>
+                    <div class="relative">
+                        <select id="sortSelect" onchange="executeSearch()" class="appearance-none bg-transparent text-xs text-slate-600 dark:text-slate-300 font-medium pr-6 py-1 cursor-pointer outline-none text-right">
+                            <option value="default">Urutkan: Relevansi</option>
+                            <option value="harga_asc">Harga (Rendah ke Tinggi)</option>
+                            <option value="harga_desc">Harga (Tinggi ke Rendah)</option>
+                            <option value="stok_desc">Stok (Terbanyak)</option>
+                            <option value="stok_asc">Stok (Tersedikit)</option>
+                            <option value="tahun_desc">Tahun (Terbaru)</option>
+                        </select>
+                        <svg class="w-3 h-3 text-slate-400 absolute right-0 top-1.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+
+                <!-- List Container -->
+                <div id="resultContainer" class="divide-y divide-slate-100 dark:divide-slate-700 max-h-[500px] overflow-y-auto bg-white dark:bg-slate-800"></div>
                 
-                <div class="table-container rounded-xl border border-slate-700/50 bg-slate-900/50 backdrop-blur-sm shadow-xl">
-                    <table class="w-full text-left text-xs whitespace-nowrap" id="batchPreviewTable">
-                        <thead class="text-slate-400 bg-slate-800/90 backdrop-blur-md sticky top-0 z-10 border-b border-slate-700/50 shadow-sm" id="batchTableHead"></thead>
-                        <tbody id="batchTableBody" class="divide-y divide-slate-800/50 text-slate-300 font-medium"></tbody>
+                <div class="p-4 text-center border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800" id="loadMoreContainer" style="display: none;">
+                    <button onclick="loadMoreSingle()" class="text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline">Muat Lebih Banyak...</button>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700 border-t border-slate-100 dark:border-slate-700">
+                    <button onclick="triggerExport('excel')" class="bg-white dark:bg-slate-800 p-3 flex justify-center items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded flex items-center justify-center"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8.5 12H9l-1.5-2.5L6 15H4.5l2.25-3.5L4.5 8H6l1.5 2.5L9 8h1.5l-2.25 3.5L10.5 15z"/></svg></div>
+                        Export Excel
+                    </button>
+                    <button onclick="triggerExport('pdf')" class="bg-white dark:bg-slate-800 p-3 flex justify-center items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div class="w-5 h-5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded flex items-center justify-center"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9.5 8.5H8V13h1.5v-1.5zm6.5 0h-1.5V13H16v-1.5zm-6.5-4H8V9h1.5V7.5zm6.5 0h-1.5V9H16V7.5z"/></svg></div>
+                        Export PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= BATCH LOOKUP ================= -->
+        <div id="view-batch" class="tab-content space-y-6">
+            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 text-center transition-colors">
+                <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden" onchange="handleFileSelect(event)">
+                <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-10 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-colors" onclick="document.getElementById('fileInput').click()">
+                    <div class="w-16 h-16 bg-blue-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    </div>
+                    <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-1" id="fileStatusText">Pilih atau letakkan file Excel di sini</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Sistem otomatis mendeteksi header (ID/ISBN/Judul)</p>
+                </div>
+
+                <div id="batchActionArea" class="hidden mt-6 text-left border-t border-slate-100 dark:border-slate-700 pt-6">
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Pilih kolom yang ditarik:</h4>
+                    <div id="column-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5 max-h-40 overflow-y-auto p-2"></div>
+                    <button onclick="executeBatchProcess()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-blue-500/30">Mulai Proses Batch</button>
+                </div>
+            </div>
+
+            <div id="batchResultArea" class="hidden bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
+                    <h3 class="font-bold text-slate-800 dark:text-white text-sm">Preview Hasil Batch</h3>
+                    <button onclick="triggerBatchExport()" class="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-800 transition-colors">Download Excel Full</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700" id="batchTableHead"></thead>
+                        <tbody id="batchTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300"></tbody>
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
 
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-around items-center h-16 pb-safe z-40 text-[10px] font-semibold text-slate-400 dark:text-slate-500 transition-colors duration-300">
+        <div class="flex flex-col items-center gap-1 nav-item active cursor-pointer p-2 w-16" onclick="switchMode('single'); focusNav(this)">
+            <svg class="w-5 h-5 nav-icon stroke-blue-600 dark:stroke-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span class="nav-text text-blue-600 dark:text-blue-400">Beranda</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 cursor-pointer hover:text-slate-600 dark:hover:text-slate-300 p-2 w-16 nav-item" onclick="openModal('historyModal')">
+            <svg class="w-5 h-5 nav-icon stroke-currentColor" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="nav-text">Riwayat</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 cursor-pointer hover:text-slate-600 dark:hover:text-slate-300 p-2 w-16 nav-item" onclick="switchMode('batch'); focusNav(this)">
+            <svg class="w-5 h-5 nav-icon stroke-currentColor" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            <span class="nav-text">Batch</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 cursor-pointer hover:text-slate-600 dark:hover:text-slate-300 p-2 w-16 nav-item" onclick="openModal('settingsModal')">
+            <svg class="w-5 h-5 nav-icon stroke-currentColor" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="nav-text">Pengaturan</span>
+        </div>
+    </nav>
+
+    <!-- Modals -->
+    <!-- Notif Modal -->
+    <div id="notifModal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="modal-content bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-slate-800 dark:text-white text-sm">Riwayat Export (Notifikasi)</h3>
+                <button onclick="closeModal('notifModal')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-4 max-h-60 overflow-y-auto space-y-3" id="notifList">
+                <p class="text-xs text-slate-500 dark:text-slate-400 text-center py-4">Belum ada riwayat export.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="modal-content bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-slate-800 dark:text-white text-sm">Riwayat Pencarian</h3>
+                <button onclick="closeModal('historyModal')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-2 max-h-60 overflow-y-auto" id="historyList"></div>
+            <div class="p-3 border-t border-slate-100 dark:border-slate-700 text-center">
+                <button onclick="clearHistory()" class="text-xs font-bold text-rose-500 hover:text-rose-600">Hapus Semua Riwayat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="modal-content bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h3 class="font-bold text-slate-800 dark:text-white text-sm">Pengaturan Lokal</h3>
+                <button onclick="closeModal('settingsModal')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-4 space-y-4">
+                <button onclick="toggleTheme()" class="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-300 transition-colors">
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Mode Gelap (Dark Mode)</span>
+                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <button onclick="clearCache()" class="w-full flex items-center justify-between bg-rose-50 dark:bg-rose-900/20 p-3 rounded-lg border border-rose-100 dark:border-rose-900/50 hover:border-rose-300 transition-colors">
+                    <span class="text-sm font-medium text-rose-600 dark:text-rose-400">Hapus Cache & Data Lokal</span>
+                    <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // --- DATA PROCESSING & MAPS ---
+        // --- THEME, MODALS & NAV LOGIC ---
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').innerHTML = isDark ? 
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>' : 
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+        }
+        
+        // Setup initial theme icon
+        if (document.documentElement.classList.contains('dark')) {
+            document.getElementById('themeIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            if(id === 'historyModal') renderHistory();
+            if(id === 'notifModal') document.getElementById('notifBadge').classList.add('hidden');
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function focusSearch() {
+            switchMode('single');
+            const searchInput = document.getElementById('searchInput');
+            searchInput.focus();
+            searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function focusNav(el) {
+            document.querySelectorAll('.nav-item').forEach(n => {
+                n.classList.remove('active');
+                n.querySelector('.nav-icon').classList.remove('stroke-blue-600', 'dark:stroke-blue-400');
+                n.querySelector('.nav-icon').classList.add('stroke-currentColor');
+                n.querySelector('.nav-text').classList.remove('text-blue-600', 'dark:text-blue-400');
+            });
+            el.classList.add('active');
+            el.querySelector('.nav-icon').classList.remove('stroke-currentColor');
+            el.querySelector('.nav-icon').classList.add('stroke-blue-600', 'dark:stroke-blue-400');
+            el.querySelector('.nav-text').classList.add('text-blue-600', 'dark:text-blue-400');
+        }
+
+        function switchMode(mode) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + mode).classList.add('active');
+            
+            const btnSingle = document.getElementById('btn-single');
+            const btnBatch = document.getElementById('btn-batch');
+            
+            if(mode === 'single') {
+                btnSingle.className = "bg-blue-600 text-white rounded-xl p-4 flex items-center justify-between shadow-lg shadow-blue-500/30 transition-transform active:scale-95";
+                btnSingle.querySelector('.text-blue-100')?.classList.remove('hidden');
+                btnSingle.querySelector('.w-10').classList.replace('bg-slate-50', 'bg-white/20');
+                btnSingle.querySelector('.w-10').classList.replace('dark:bg-slate-900/30', 'bg-white/20');
+                btnSingle.querySelector('.w-10').classList.replace('text-blue-600', 'text-white');
+                btnSingle.querySelector('.w-10').classList.replace('dark:text-blue-400', 'text-white');
+                
+                btnBatch.className = "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-blue-300 dark:hover:border-blue-500 transition-all active:scale-95";
+                btnBatch.querySelector('h3').classList.remove('text-white');
+                btnBatch.querySelector('h3').classList.add('text-slate-800', 'dark:text-white');
+                btnBatch.querySelector('.w-10').className = "w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400";
+                
+                focusNav(document.querySelectorAll('.nav-item')[0]);
+            } else {
+                btnBatch.className = "bg-blue-600 text-white rounded-xl p-4 flex items-center justify-between shadow-lg shadow-blue-500/30 transition-transform active:scale-95";
+                btnBatch.querySelector('h3').classList.remove('text-slate-800', 'dark:text-white');
+                btnBatch.querySelector('h3').classList.add('text-white');
+                btnBatch.querySelector('.w-10').className = "w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white";
+
+                btnSingle.className = "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-blue-300 dark:hover:border-blue-500 transition-all active:scale-95";
+                btnSingle.querySelector('.text-blue-100')?.classList.add('hidden');
+                btnSingle.querySelector('.w-10').className = "w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400";
+                
+                focusNav(document.querySelectorAll('.nav-item')[2]);
+            }
+        }
+
+        // --- HISTORY & CACHE ---
+        function saveHistory(query) {
+            if(!query.trim()) return;
+            let hist = JSON.parse(localStorage.getItem('bsoft_history') || '[]');
+            hist = hist.filter(h => h.toLowerCase() !== query.toLowerCase());
+            hist.unshift(query.trim());
+            if(hist.length > 15) hist.pop();
+            localStorage.setItem('bsoft_history', JSON.stringify(hist));
+        }
+
+        function renderHistory() {
+            let hist = JSON.parse(localStorage.getItem('bsoft_history') || '[]');
+            const container = document.getElementById('historyList');
+            if(hist.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Belum ada riwayat pencarian.</p>';
+                return;
+            }
+            container.innerHTML = hist.map(h => `
+                <div onclick="applyHistory('${h}')" class="p-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="text-sm text-slate-700 dark:text-slate-200">${h}</span>
+                </div>
+            `).join('');
+        }
+
+        function applyHistory(query) {
+            document.getElementById('searchInput').value = query;
+            closeModal('historyModal');
+            executeSearch();
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('bsoft_history');
+            renderHistory();
+        }
+
+        function clearCache() {
+            localStorage.removeItem('bsoft_history');
+            localStorage.removeItem('bsoft_notifs');
+            alert('Cache dan riwayat lokal berhasil dihapus!');
+            closeModal('settingsModal');
+        }
+
+        // --- NOTIFICATIONS ---
+        function addNotification(type, filename, count) {
+            let notifs = JSON.parse(localStorage.getItem('bsoft_notifs') || '[]');
+            const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            notifs.unshift({ type, filename, count, time, date: new Date().toLocaleDateString('id-ID') });
+            if(notifs.length > 20) notifs.pop();
+            localStorage.setItem('bsoft_notifs', JSON.stringify(notifs));
+            
+            document.getElementById('notifBadge').classList.remove('hidden');
+            renderNotifs();
+        }
+
+        function renderNotifs() {
+            let notifs = JSON.parse(localStorage.getItem('bsoft_notifs') || '[]');
+            const container = document.getElementById('notifList');
+            if(notifs.length === 0) return;
+            
+            container.innerHTML = notifs.map(n => `
+                <div class="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg border border-slate-100 dark:border-slate-700">
+                    <div class="flex items-center gap-2 mb-1">
+                        <div class="w-2 h-2 rounded-full ${n.type === 'excel' ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
+                        <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200">Export ${n.type.toUpperCase()} Berhasil</h4>
+                        <span class="text-[10px] text-slate-400 ml-auto">${n.time}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">File <span class="font-semibold text-slate-600 dark:text-slate-300">${n.filename}</span> diunduh. Total: ${n.count} data.</p>
+                </div>
+            `).join('');
+        }
+
+        // --- DATA PROCESSING ---
         const GSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1oOR3gFw363uttAx6nFnf1ffVvVjY4v-dxn9C0Ij4VLU/export?format=csv";
         
-        let rawHeaders = [];
-        let allData = [];
+        let rawHeaders = [], allData = [];
         let dataMapById = new Map(), dataMapByIsbn = new Map(), dataMapByJudul = new Map();
         
         let currentSingleData = [], singleRenderIndex = 0;
-        const ITEMS_PER_PAGE = 50; 
-        
-        let pendingBatchData = null; 
-        let batchSelectedHeaders = [];
-        let currentBatchResult = [];
+        const ITEMS_PER_PAGE = 30; 
+        let pendingBatchData = null, batchSelectedHeaders = [], currentBatchResult = [];
 
         window.onload = () => {
-            // Biarkan menu utama langsung tampil. Kita jalankan fetching data di latar belakang.
-            document.getElementById('singleResultArea').classList.add('hidden'); // Sembunyikan tabel jika belum ada data
-
+            renderNotifs(); 
+            
             Papa.parse(GSHEET_CSV_URL, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
@@ -310,24 +559,15 @@
                     processRawData(results.data);
                     renderBatchCheckboxes();
                     
-                    // Animasi sukses pada indikator loading background
                     const loader = document.getElementById('bgSyncLoader');
-                    document.getElementById('syncSpinner').outerHTML = `
-                        <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                    `;
-                    document.getElementById('syncTextContainer').innerHTML = `
-                        <h3 class="text-sm font-bold text-emerald-400">Database Siap!</h3>
-                        <p class="text-xs text-slate-400">Sinkronisasi berhasil.</p>
-                    `;
-
-                    // Populating initial data
+                    document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    document.getElementById('syncTitle').innerText = "Data Siap!";
+                    document.getElementById('syncTitle').className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
+                    document.getElementById('syncDesc').innerText = "Database berhasil disinkronkan";
+                    
                     executeSearch();
 
-                    // Hilangkan indikator kecil setelah beberapa detik
                     setTimeout(() => {
-                        loader.style.transform = 'translateY(20px)';
                         loader.style.opacity = '0';
                         setTimeout(() => loader.classList.add('hidden'), 500);
                     }, 2000);
@@ -336,24 +576,27 @@
         };
 
         function processRawData(rawData) {
-            let types = new Set(), subTypes = new Set(), gols = new Set(), pengarangs = new Set();
+            let kategoris = new Set(), pengarangs = new Set(), tahuns = new Set();
             
             rawData.forEach(row => {
                 const keys = Object.keys(row);
                 const judul = row['judul'] || row[keys[1]] || '';
-                if (judul.trim().toLowerCase().startsWith('*e-')) return; 
+                if (String(judul).trim().toLowerCase().startsWith('*e-')) return; 
 
                 const id = row['iditem'] || row[keys[0]] || '';
                 const pengarang = row['pengarang'] || row[keys[2]] || '-';
                 const edisi = row['edisi'] || row[keys[3]] || '-'; 
                 const isbn = row['isbn'] || row[keys[5]] || '-';
-                const tahun_terbit = parseInt(row['tahun_terbit'] || row[keys[6]]) || 0;
-                const ukuran_p = row['ukuran_p'] || row[keys[7]] || '-';
-                const ukuran_l = row['ukuran_l'] || row[keys[8]] || '-';
-                const jml_halaman = row['jml_halaman'] || row[keys[9]] || '-';
-                const tipe = row['tipe_stok'] || row[keys[11]] || '';
+                
+                let tahunRaw = row['tahun_terbit'] || row[keys[6]];
+                let tahun_terbit = parseInt(tahunRaw) || 0;
+                if(tahun_terbit > 20000) {
+                    tahun_terbit = new Date((tahun_terbit - (25567 + 2)) * 86400 * 1000).getFullYear();
+                }
+                
                 const subTipe = row['sub_tipe_stok'] || row[keys[12]] || '';
                 const gol = row['golongan'] || row[keys[13]] || '';
+                const kategori = (subTipe || gol) ? `${subTipe} ${gol ? '/ '+gol : ''}` : '-';
                 
                 const hargaGP1 = parseFloat(row[keys[14]]) || 0;
                 const hargaGP2 = parseFloat(row[keys[15]]) || 0;
@@ -361,137 +604,181 @@
                 const stok = parseInt(row[keys[keys.length - 1]]) || 0;
 
                 const itemObj = { 
-                    id, judul, pengarang, edisi, isbn, tahun_terbit, ukuran_p, ukuran_l, jml_halaman, 
-                    tipe, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, rawRow: row 
+                    id, judul, pengarang, edisi, isbn, tahun_terbit, 
+                    kategori, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, rawRow: row 
                 };
                 
                 allData.push(itemObj);
                 
-                if(id) dataMapById.set(id.toString().trim().toLowerCase(), itemObj);
-                if(isbn && isbn !== '-') dataMapByIsbn.set(isbn.toString().trim().toLowerCase(), itemObj);
-                if(judul) dataMapByJudul.set(judul.toString().trim().toLowerCase(), itemObj);
+                if(id) dataMapById.set(String(id).trim().toLowerCase(), itemObj);
+                if(isbn && isbn !== '-') dataMapByIsbn.set(String(isbn).trim().toLowerCase(), itemObj);
+                if(judul) dataMapByJudul.set(String(judul).trim().toLowerCase(), itemObj);
 
-                if(tipe) types.add(tipe);
-                if(subTipe) subTypes.add(subTipe);
-                if(gol) gols.add(gol);
+                if(subTipe) kategoris.add(subTipe);
                 if(pengarang && pengarang !== '-') pengarangs.add(pengarang);
+                if(tahun_terbit > 1900 && tahun_terbit <= new Date().getFullYear()+1) tahuns.add(tahun_terbit);
             });
 
-            populateSelectClass('select-tipe', types); 
-            populateSelectClass('select-subtipe', subTypes);
-            populateSelectClass('select-gol', gols); 
-            populateSelectClass('select-pengarang', pengarangs);
+            populateSelect('singleKategori', kategoris); 
+            populateSelect('singlePengarang', pengarangs);
+            
+            const tahunSelect = document.getElementById('singleTahun');
+            Array.from(tahuns).sort((a,b)=>b-a).forEach(val => {
+                const opt = document.createElement('option'); opt.value = val; opt.innerText = val;
+                tahunSelect.appendChild(opt);
+            });
         }
 
-        function populateSelectClass(className, set) {
-            const els = document.querySelectorAll('.' + className);
+        function populateSelect(elementId, set) {
+            const el = document.getElementById(elementId);
             Array.from(set).sort().forEach(val => {
-                els.forEach(el => {
-                    const opt = document.createElement('option');
-                    opt.value = val; opt.innerText = val.length > 35 ? val.substring(0,35)+'...' : val;
-                    el.appendChild(opt);
-                });
+                const opt = document.createElement('option');
+                opt.value = val; opt.innerText = val.length > 30 ? val.substring(0,30)+'...' : val;
+                el.appendChild(opt);
             });
         }
 
-        function switchTab(tabId) {
-            ['single-lookup', 'batch-lookup'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            
-            const btnClassesActive = "px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border backdrop-blur-md bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]";
-            const btnClassesInactive = "px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border backdrop-blur-md bg-slate-800/50 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-700/80";
-            
-            document.getElementById('tab-single').className = tabId === 'single' ? btnClassesActive : btnClassesInactive;
-            document.getElementById('tab-batch').className = tabId === 'batch' ? btnClassesActive : btnClassesInactive;
-            
-            document.getElementById(tabId + '-lookup').classList.remove('hidden');
-        }
-
-        function applyFilters(dataArr, prefix) {
-            const input = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase().trim() : '';
-            const tipe = document.getElementById(prefix + 'Tipe').value;
-            const sub = document.getElementById(prefix + 'SubTipe').value;
-            const gol = document.getElementById(prefix + 'Gol').value;
-            const peng = document.getElementById(prefix + 'Pengarang').value;
-            
-            const thnMinStr = document.getElementById(prefix + 'TahunMin').value;
-            const thnMaxStr = document.getElementById(prefix + 'TahunMax').value;
-            const thnMin = thnMinStr !== "" ? parseInt(thnMinStr) : 0;
-            const thnMax = thnMaxStr !== "" ? parseInt(thnMaxStr) : 99999;
-
-            const stokMinStr = document.getElementById(prefix + 'StokMin').value;
-            const stokMaxStr = document.getElementById(prefix + 'StokMax').value;
-            const stokMin = stokMinStr !== "" ? parseInt(stokMinStr) : -999999;
-            const stokMax = stokMaxStr !== "" ? parseInt(stokMaxStr) : 999999;
-            
-            const hrgMinStr = document.getElementById(prefix + 'HargaMin').value;
-            const hrgMaxStr = document.getElementById(prefix + 'HargaMax').value;
-            const hrgMin = hrgMinStr !== "" ? parseFloat(hrgMinStr) : -1;
-            const hrgMax = hrgMaxStr !== "" ? parseFloat(hrgMaxStr) : 999999999;
-
-            return dataArr.filter(d => {
-                if(prefix === 'single' && input !== "") {
-                    const matchText = d.id.toLowerCase().includes(input) || 
-                                      d.judul.toLowerCase().includes(input) || 
-                                      d.isbn.toLowerCase().includes(input) || 
-                                      d.pengarang.toLowerCase().includes(input);
-                    if(!matchText) return false;
-                }
-                
-                if(tipe && d.tipe !== tipe) return false;
-                if(sub && d.subTipe !== sub) return false;
-                if(gol && d.gol !== gol) return false;
-                if(peng && d.pengarang !== peng) return false;
-                
-                if(d.tahun_terbit < thnMin || d.tahun_terbit > thnMax) return false;
-                if(d.stok < stokMin || d.stok > stokMax) return false;
-                if(d.hargaGP1 < hrgMin || d.hargaGP1 > hrgMax) return false;
-                
-                return true;
+        function resetFilters() {
+            ['singleKategori', 'singlePengarang', 'singleTahun', 'thnMin', 'thnMax', 'singleStok', 'stokMin', 'stokMax', 'singleHarga', 'hrgMin', 'hrgMax', 'searchInput'].forEach(id => {
+                document.getElementById(id).value = (id === 'singleStok' || id === 'singleHarga') ? 'all' : '';
             });
+            executeSearch();
         }
 
         function executeSearch() {
-            if(allData.length === 0) return; // Mencegah render jika data belum siap
+            if(allData.length === 0) return;
             
-            currentSingleData = applyFilters(allData, 'single');
-            document.getElementById('resultCount').innerText = currentSingleData.length.toLocaleString('id-ID');
-            document.getElementById('singleTableBody').innerHTML = '';
+            const input = document.getElementById('searchInput').value.toLowerCase().trim();
+            const kat = document.getElementById('singleKategori').value;
+            const peng = document.getElementById('singlePengarang').value;
+            
+            const thnDrop = document.getElementById('singleTahun').value;
+            const tMin = document.getElementById('thnMin').value;
+            const tMax = document.getElementById('thnMax').value;
+            
+            const stokDrop = document.getElementById('singleStok').value;
+            const sMin = document.getElementById('stokMin').value;
+            const sMax = document.getElementById('stokMax').value;
+            
+            const hrgDrop = document.getElementById('singleHarga').value;
+            const hMin = document.getElementById('hrgMin').value;
+            const hMax = document.getElementById('hrgMax').value;
+            
+            const sortMode = document.getElementById('sortSelect').value;
+
+            currentSingleData = allData.filter(d => {
+                // FIXED BUGS: Mengubah semua target pencarian menjadi format string agar fungsi .toLowerCase() tidak crash
+                if(input) {
+                    const matchId = String(d.id).toLowerCase().includes(input);
+                    const matchJudul = String(d.judul).toLowerCase().includes(input);
+                    const matchIsbn = String(d.isbn).toLowerCase().includes(input);
+                    const matchPeng = String(d.pengarang).toLowerCase().includes(input);
+                    
+                    if (!(matchId || matchJudul || matchIsbn || matchPeng)) return false;
+                }
+                
+                if(kat && d.subTipe !== kat) return false;
+                if(peng && d.pengarang !== peng) return false;
+                
+                // Tahun Logic
+                if(tMin && d.tahun_terbit < parseInt(tMin)) return false;
+                if(tMax && d.tahun_terbit > parseInt(tMax)) return false;
+                if(!tMin && !tMax && thnDrop && d.tahun_terbit.toString() !== thnDrop) return false;
+                
+                // Stok Logic
+                if(sMin && d.stok < parseInt(sMin)) return false;
+                if(sMax && d.stok > parseInt(sMax)) return false;
+                if(!sMin && !sMax) {
+                    if(stokDrop === 'aman' && d.stok < 100) return false;
+                    if(stokDrop === 'kritis' && (d.stok <= 0 || d.stok >= 100)) return false;
+                    if(stokDrop === 'habis' && d.stok > 0) return false;
+                }
+                
+                // Harga Logic
+                if(hMin && d.hargaGP1 < parseFloat(hMin)) return false;
+                if(hMax && d.hargaGP1 > parseFloat(hMax)) return false;
+                if(!hMin && !hMax && hrgDrop !== 'all') {
+                    const [min, max] = hrgDrop.split('-');
+                    if(d.hargaGP1 < parseFloat(min) || d.hargaGP1 > parseFloat(max)) return false;
+                }
+                
+                return true;
+            });
+
+            // Sorting Logic
+            if(sortMode !== 'default') {
+                currentSingleData.sort((a,b) => {
+                    if(sortMode === 'harga_asc') return a.hargaGP1 - b.hargaGP1;
+                    if(sortMode === 'harga_desc') return b.hargaGP1 - a.hargaGP1;
+                    if(sortMode === 'stok_desc') return b.stok - a.stok;
+                    if(sortMode === 'stok_asc') return a.stok - b.stok;
+                    if(sortMode === 'tahun_desc') return b.tahun_terbit - a.tahun_terbit;
+                    return 0;
+                });
+            }
+
+            document.getElementById('resultCountBadge').innerText = `${currentSingleData.length.toLocaleString('id-ID')} data`;
+            document.getElementById('resultContainer').innerHTML = '';
             singleRenderIndex = 0;
             loadMoreSingle();
-            document.getElementById('singleResultArea').classList.remove('hidden');
         }
 
         function loadMoreSingle() {
-            const tbody = document.getElementById('singleTableBody');
+            const container = document.getElementById('resultContainer');
             const end = Math.min(singleRenderIndex + ITEMS_PER_PAGE, currentSingleData.length);
             
             let htmlChunk = '';
             for(let i = singleRenderIndex; i < end; i++) {
                 const item = currentSingleData[i];
-                const katString = `${item.subTipe || '-'} / ${item.gol || '-'}`;
+                
+                let stockLabel, stockClass, iconPath;
+                if(item.stok <= 0) {
+                    stockLabel = `Stok Habis (0)`;
+                    stockClass = 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800';
+                    iconPath = 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
+                } else if (item.stok > 0 && item.stok < 100) {
+                    stockLabel = `Stok Kritis (${item.stok})`;
+                    stockClass = 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+                    iconPath = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
+                } else {
+                    stockLabel = `Stok Tersedia (${item.stok})`;
+                    stockClass = 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800';
+                    iconPath = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
+                }
                 
                 htmlChunk += `
-                    <tr class="group hover:bg-white/[0.02] border-b border-slate-800/50 transition-colors">
-                        <td class="px-4 py-3 font-mono text-[11px] text-blue-300">${item.id}</td>
-                        <td class="px-4 py-3 font-mono text-[11px] text-slate-400 group-hover:text-slate-300">${item.isbn}</td>
-                        <td class="px-4 py-3 whitespace-normal min-w-[220px] text-slate-100">${item.judul}</td>
-                        <td class="px-4 py-3 whitespace-normal min-w-[130px] text-slate-300">${item.pengarang}</td>
-                        <td class="px-4 py-3 text-[11px] text-slate-400">${item.edisi}</td>
-                        <td class="px-4 py-3 text-center font-extrabold text-[13px] ${item.stok > 0 ? 'text-emerald-400' : 'text-rose-400'}">${item.stok}</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-200">Rp ${item.hargaGP1.toLocaleString('id-ID')}</td>
-                        <td class="px-4 py-3 text-[10px]"><span class="bg-slate-800 text-slate-300 border border-slate-700 group-hover:border-slate-500 px-2.5 py-1 rounded-md whitespace-normal text-center inline-block min-w-[90px] transition-colors">${katString}</span></td>
-                    </tr>`;
+                    <div class="p-4 flex gap-3 sm:gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div class="text-slate-400 dark:text-slate-500 font-medium text-xs sm:text-sm pt-1">${i + 1}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-slate-800 dark:text-slate-200 text-sm truncate" title="${item.judul}">${item.judul}</div>
+                            <div class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">${item.pengarang} <span class="text-[10px]">(${item.tahun_terbit})</span></div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 truncate">ISBN ${item.isbn} &nbsp;|&nbsp; ID ITEM ${item.id}</div>
+                        </div>
+                        <div class="text-right flex flex-col items-end justify-between flex-shrink-0">
+                            <div class="${stockClass} text-[9px] sm:text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold mb-1 border">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path></svg>
+                                ${stockLabel}
+                            </div>
+                            <div class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Rp ${item.hargaGP1.toLocaleString('id-ID')} <span class="text-[9px] sm:text-[10px] text-slate-400 font-medium">(GP1)</span></div>
+                            <div class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1 truncate max-w-[100px] sm:max-w-[150px]">
+                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                ${item.kategori}
+                            </div>
+                        </div>
+                    </div>`;
             }
-            tbody.insertAdjacentHTML('beforeend', htmlChunk);
+            container.insertAdjacentHTML('beforeend', htmlChunk);
             singleRenderIndex = end;
             
-            const btn = document.getElementById('btnLoadMoreSingle');
+            const btnContainer = document.getElementById('loadMoreContainer');
             if(singleRenderIndex < currentSingleData.length) {
-                btn.classList.remove('hidden');
-                btn.innerText = `Load More Data... (${(currentSingleData.length - singleRenderIndex).toLocaleString('id-ID')} tersisa)`;
-            } else { btn.classList.add('hidden'); }
+                btnContainer.style.display = 'block';
+            } else { 
+                btnContainer.style.display = 'none'; 
+            }
         }
 
+        // --- BATCH PROCESSING ---
         function renderBatchCheckboxes() {
             const container = document.getElementById('column-checkboxes');
             const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang', 'edisi', 'hargajual_gp1'];
@@ -499,27 +786,21 @@
             rawHeaders.forEach(header => {
                 const isChecked = defaultChecked.includes(header.toLowerCase()) ? 'checked' : '';
                 html += `
-                    <label class="cb-container bg-slate-800/40 p-2 rounded hover:bg-slate-700/50 border border-transparent hover:border-slate-600 transition-all" title="${header}">
-                        <input type="checkbox" value="${header}" class="batch-col-cb" ${isChecked}>
-                        <span class="truncate text-xs font-medium">${header.length > 20 ? header.substring(0,20)+'...' : header}</span>
+                    <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+                        <input type="checkbox" value="${header}" class="batch-col-cb w-3.5 h-3.5 text-blue-600 rounded border-slate-300 focus:ring-blue-500 bg-white dark:bg-slate-700" ${isChecked}>
+                        <span class="truncate">${header}</span>
                     </label>
                 `;
             });
             container.innerHTML = html;
         }
 
-        const dropZone = document.getElementById('drop-zone');
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
-        ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.add('dragover')));
-        ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, () => dropZone.classList.remove('dragover')));
-        dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
-        
-        function handleFileSelect(e) { handleFiles(e.target.files); }
-
-        function handleFiles(files) {
+        function handleFileSelect(e) {
+            const files = e.target.files;
             if(!files || files.length === 0) return;
             const file = files[0];
-            document.getElementById('fileStatusText').innerHTML = `<span class="text-emerald-400 bg-emerald-900/20 px-3 py-1 rounded-full border border-emerald-500/30">${file.name}</span> <span class="text-white">berhasil dibaca!</span>`;
+            
+            document.getElementById('fileStatusText').innerHTML = `<span class="text-emerald-600 dark:text-emerald-400">${file.name}</span> terpilih`;
             
             const reader = new FileReader();
             reader.onload = e => {
@@ -535,7 +816,7 @@
         }
 
         function executeBatchProcess() {
-            if(allData.length === 0) return alert("Database utama belum selesai tersinkronisasi. Tunggu beberapa saat lagi.");
+            if(allData.length === 0) return alert("Database utama belum selesai tersinkronisasi.");
             if(!pendingBatchData || pendingBatchData.length === 0) return alert("File Excel kosong atau format salah!");
             
             const cbs = document.querySelectorAll('.batch-col-cb:checked');
@@ -550,7 +831,6 @@
 
             for(let i = 0; i < pendingBatchData.length; i++) {
                 const row = pendingBatchData[i];
-                
                 if (!row || row.length === 0) {
                     let emptyRow = {};
                     for(let c=0; c<maxCols; c++) emptyRow[`Kolom_${c+1}`] = '';
@@ -564,7 +844,6 @@
                 const isHeader = rowLower.some(c => typeof c === 'string' && ['judul', 'title', 'nama', 'isbn', 'barcode', 'kode', 'id', 'id item', 'iditem'].includes(c));
 
                 let resultRow = {};
-
                 for(let c=0; c<maxCols; c++) {
                     const colName = `Kolom_${c+1}`;
                     resultRow[colName] = row[c] !== undefined ? row[c] : '';
@@ -575,86 +854,91 @@
                     isbnColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'isbn' || c.includes('barcode')));
                     judulColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'judul' || c === 'title' || c === 'nama'));
 
-                    batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = `[HEADER BSOFT: ${h.toUpperCase()}]`);
+                    batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = `[HEADER]`);
                     resultRow["Status Pencarian"] = "HEADER DATA";
                     currentBatchResult.push(resultRow);
                     continue;
                 }
 
                 let match = null;
-                let matchedBy = "";
-
-                const valJudul = judulColIndex !== -1 ? (row[judulColIndex] || '').toString().trim().toLowerCase() : '';
-                const valId = idColIndex !== -1 ? (row[idColIndex] || '').toString().trim().toLowerCase() : '';
-                const valIsbn = isbnColIndex !== -1 ? (row[isbnColIndex] || '').toString().trim().toLowerCase() : '';
+                const valJudul = judulColIndex !== -1 ? String(row[judulColIndex] || '').trim().toLowerCase() : '';
+                const valId = idColIndex !== -1 ? String(row[idColIndex] || '').trim().toLowerCase() : '';
+                const valIsbn = isbnColIndex !== -1 ? String(row[isbnColIndex] || '').trim().toLowerCase() : '';
 
                 const isSummaryRow = rowLower.some(c => typeof c === 'string' && (c.includes('total') || c.includes('qty') || c.includes('subtotal')));
 
                 if (!isSummaryRow && (valJudul || valId || valIsbn)) {
-                    if (valId) { match = dataMapById.get(valId); if(match) matchedBy = "ID"; }
-                    if (!match && valIsbn) { match = dataMapByIsbn.get(valIsbn); if(match) matchedBy = "ISBN"; }
-                    if (!match && valJudul) { match = dataMapByJudul.get(valJudul); if(match) matchedBy = "Judul"; }
+                    if (valId) { match = dataMapById.get(valId); }
+                    if (!match && valIsbn) { match = dataMapByIsbn.get(valIsbn); }
+                    if (!match && valJudul) { match = dataMapByJudul.get(valJudul); }
 
                     if (match) {
-                        batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = match.rawRow[header] || '-');
-                        resultRow["Status Pencarian"] = `Berhasil (via ${matchedBy})`;
+                        batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = match.rawRow[h] || '-');
+                        resultRow["Status Pencarian"] = `Berhasil`;
                     } else {
-                        batchSelectedHeaders.forEach(header => resultRow[`BSOFT_${header}`] = 'Not Found');
+                        batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = 'Not Found');
                         resultRow["Status Pencarian"] = "Gagal Ditemukan";
                     }
                 } else {
                     batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = '');
                     resultRow["Status Pencarian"] = "";
                 }
-
                 currentBatchResult.push(resultRow);
             }
             
             const headTr = document.getElementById('batchTableHead');
             const bodyTb = document.getElementById('batchTableBody');
             
-            const previewOriginalCount = Math.min(maxCols, 4); 
+            const previewOriginalCount = Math.min(maxCols, 3); 
             const previewBsoftHeaders = batchSelectedHeaders.slice(0, 3); 
             
             let headHtml = `<tr>`;
-            for(let c=1; c<=previewOriginalCount; c++) {
-                headHtml += `<th class="px-4 py-3 whitespace-normal min-w-[130px] bg-slate-800/80">KOLOM ASLI ${c}</th>`;
-            }
-            previewBsoftHeaders.forEach(h => headHtml += `<th class="px-4 py-3 whitespace-normal min-w-[160px] text-blue-400 bg-blue-900/10 border-l border-blue-500/20">TARIKAN ${h}</th>`);
-            headHtml += `<th class="px-4 py-3 text-center bg-slate-800/80 border-l border-slate-700">STATUS</th></tr>`;
+            for(let c=1; c<=previewOriginalCount; c++) headHtml += `<th class="px-4 py-3 font-semibold text-xs">ASLI ${c}</th>`;
+            previewBsoftHeaders.forEach(h => headHtml += `<th class="px-4 py-3 font-semibold text-xs text-blue-600 dark:text-blue-400">TARIKAN ${h}</th>`);
+            headHtml += `<th class="px-4 py-3 font-semibold text-xs text-center">STATUS</th></tr>`;
             headTr.innerHTML = headHtml;
 
-            let bodyHtml = currentBatchResult.slice(0, 50).map(row => {
+            let bodyHtml = currentBatchResult.slice(0, 30).map(row => {
                 let isHeaderData = row["Status Pencarian"] === "HEADER DATA";
-                let isEmpty = row["Status Pencarian"] === "";
                 let isFail = row["Status Pencarian"] === "Gagal Ditemukan";
                 
-                let bgClass = isHeaderData ? "bg-blue-900/30 font-bold border-t border-b border-blue-500/30" : 
-                              isEmpty ? "bg-slate-900/10 opacity-60" : "";
-                
-                let html = `<tr class="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors ${isFail ? 'opacity-60 grayscale' : ''} ${bgClass}">`;
+                let bgClass = isHeaderData ? "bg-slate-100 dark:bg-slate-700 font-bold" : "";
+                let html = `<tr class="${bgClass} ${isFail ? 'opacity-50' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'}">`;
                 
                 for(let c=1; c<=previewOriginalCount; c++) {
-                    const val = row[`Kolom_${c}`] || '';
-                    html += `<td class="px-4 py-3 text-[11px] whitespace-normal min-w-[130px] ${isHeaderData ? 'text-blue-200' : 'text-slate-300'}">${val}</td>`;
+                    html += `<td class="px-4 py-3 text-[11px] truncate max-w-[120px]">${row[`Kolom_${c}`] || ''}</td>`;
                 }
                 
                 previewBsoftHeaders.forEach(h => {
-                    html += `<td class="px-4 py-3 text-[11px] whitespace-normal min-w-[160px] ${isHeaderData ? 'text-blue-300' : 'text-blue-100 bg-blue-900/5'} border-l border-blue-500/10">${row[`BSOFT_${h}`] || ''}</td>`;
+                    html += `<td class="px-4 py-3 text-[11px] truncate max-w-[150px] text-blue-700 dark:text-blue-400">${row[`BSOFT_${h}`] || ''}</td>`;
                 });
                 
-                const statusColor = row["Status Pencarian"].includes('Berhasil') ? 'text-emerald-400 bg-emerald-400/10 rounded-full px-2 py-1 inline-block' :
-                                    isHeaderData ? 'text-blue-300' : 
-                                    isFail ? 'text-rose-400 bg-rose-400/10 rounded-full px-2 py-1 inline-block' : '';
+                const statusHtml = row["Status Pencarian"] === 'Berhasil' ? '<span class="text-emerald-500 font-bold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">Berhasil</span>' :
+                                   isHeaderData ? '<span class="text-slate-500 font-bold">HEADER</span>' : 
+                                   isFail ? '<span class="text-rose-500 font-bold bg-rose-50 dark:bg-rose-900/30 px-2 py-1 rounded">Gagal</span>' : '';
                                     
-                html += `<td class="px-4 py-3 text-[11px] text-center font-bold border-l border-slate-700/50"><span class="${statusColor}">${row["Status Pencarian"]}</span></td></tr>`;
+                html += `<td class="px-4 py-3 text-[11px] text-center">${statusHtml}</td></tr>`;
                 return html;
             }).join('');
             
-            if(currentBatchResult.length > 50) bodyHtml += `<tr><td colspan="10" class="text-center py-5 text-slate-400 font-bold tracking-wide">Terdapat ${(currentBatchResult.length).toLocaleString('id-ID')} baris total diproses. <span class="text-blue-400">Klik Download Full Excel untuk melihat seluruh hasil.</span></td></tr>`;
+            if(currentBatchResult.length > 30) bodyHtml += `<tr><td colspan="10" class="text-center py-4 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900/30">Menampilkan 30 baris pertama. Klik Download untuk melihat semua data.</td></tr>`;
             
             bodyTb.innerHTML = bodyHtml;
             document.getElementById('batchResultArea').classList.remove('hidden');
+        }
+
+        // --- EXPORT FUNCTIONALITY ---
+        function triggerExport(type) {
+            const fileName = 'Laporan_BSOFT_' + new Date().getTime();
+            exportData(currentSingleData, type, fileName);
+            addNotification(type, fileName + (type==='excel'?'.xlsx':'.pdf'), currentSingleData.length);
+        }
+        
+        function triggerBatchExport() {
+            if(!currentBatchResult.length) return;
+            const fileName = 'Batch_Result_BSOFT_' + new Date().getTime();
+            exportBatchExcel(fileName);
+            addNotification('excel', fileName + '.xlsx', currentBatchResult.length);
         }
 
         function getJsonColWidths(jsonArr) {
@@ -663,20 +947,19 @@
             return keys.map(k => {
                 let max = k.length;
                 jsonArr.forEach(row => {
-                    const cellLen = row[k] ? row[k].toString().length : 0;
+                    const cellLen = row[k] ? String(row[k]).length : 0;
                     if(cellLen > max) max = cellLen;
                 });
                 return { wch: Math.min(max + 2, 50) };
             });
         }
 
-        function exportBatchExcel() {
-            if(!currentBatchResult.length) return;
+        function exportBatchExcel(fileName) {
             const ws = XLSX.utils.json_to_sheet(currentBatchResult);
             ws['!cols'] = getJsonColWidths(currentBatchResult);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Batch_Result");
-            XLSX.writeFile(wb, "Batch_Custom_Export_BSOFT.xlsx");
+            XLSX.writeFile(wb, fileName + ".xlsx");
         }
 
         function getAoaColWidths(headers, data) {
@@ -684,7 +967,7 @@
             headers[0].forEach((h, i) => {
                 let max = h.length;
                 data.forEach(row => {
-                    const cellLen = row[i] ? row[i].toString().length : 0;
+                    const cellLen = row[i] ? String(row[i]).length : 0;
                     if(cellLen > max) max = cellLen;
                 });
                 cols.push({ wch: Math.min(max + 2, 50) });
@@ -695,16 +978,14 @@
         function exportData(dataSource, type, fileName) {
             if(!dataSource || dataSource.length === 0) return alert('Tidak ada data yang bisa di-export.');
             
-            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'UK. P', 'UK. L', 'HAL', 'SUB TIPE', 'GOLONGAN', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
+            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'KATEGORI', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
             const formatData = dataSource.map(d => [
-                d.id, d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.ukuran_p, d.ukuran_l, d.jml_halaman,
-                d.subTipe, d.gol, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
+                d.id, d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.kategori, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
             ]);
 
             if(type === 'excel') {
                 const ws = XLSX.utils.aoa_to_sheet([...headers, ...formatData]);
                 ws['!cols'] = getAoaColWidths(headers, formatData);
-                
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Data");
                 XLSX.writeFile(wb, `${fileName}.xlsx`);
