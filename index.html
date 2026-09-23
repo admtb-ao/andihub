@@ -62,11 +62,11 @@
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300 relative min-h-screen">
 
     <!-- Sync/Toast Notification -->
-    <div id="bgSyncLoader" class="fixed top-20 right-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 transition-all duration-500 transform translate-y-0 opacity-100">
+    <div id="bgSyncLoader" class="fixed top-20 right-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 transition-all duration-500 transform translate-y-0 opacity-100 hidden">
         <div class="spinner-small text-blue-600 dark:text-blue-400" id="syncSpinner"></div>
         <div>
             <h3 class="text-xs font-bold text-slate-700 dark:text-slate-200" id="syncTitle">Menyinkronkan Database...</h3>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="syncDesc">Mohon di tunggu</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="syncDesc">Sedang diproses — Mohon ditunggu</p>
         </div>
     </div>
 
@@ -541,7 +541,7 @@
             `).join('');
         }
 
-        // --- DATA PROCESSING ---
+        // --- DATA PROCESSING & SINKRONISASI ---
         const GSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1oOR3gFw363uttAx6nFnf1ffVvVjY4v-dxn9C0Ij4VLU/export?format=csv";
         
         let rawHeaders = [], allData = [];
@@ -551,31 +551,97 @@
         const ITEMS_PER_PAGE = 30; 
         let pendingBatchData = null, batchSelectedHeaders = [], currentBatchResult = [];
 
+        // --- IDLE TIMER SYSTEM (30 Menit) ---
+        let idleTimeout;
+        const IDLE_LIMIT = 30 * 60 * 1000; // 30 Menit dalam milliseconds
+
+        function resetIdleTimer() {
+            clearTimeout(idleTimeout);
+            idleTimeout = setTimeout(() => {
+                // Eksekusi auto refresh saat diam 30 menit
+                syncData(true); 
+            }, IDLE_LIMIT);
+        }
+
+        function setupIdleTimer() {
+            // Pasang sensor aktivitas user
+            document.addEventListener('mousemove', resetIdleTimer);
+            document.addEventListener('keypress', resetIdleTimer);
+            document.addEventListener('touchstart', resetIdleTimer);
+            document.addEventListener('scroll', resetIdleTimer);
+            resetIdleTimer(); // Mulai timer
+        }
+
         window.onload = () => {
             renderNotifs(); 
+            setupIdleTimer();
+            syncData(false); // Ambil data saat pertama kali buka
+        };
+
+        function clearSelectOptions(elementId) {
+            const el = document.getElementById(elementId);
+            while (el.options.length > 1) {
+                el.remove(1);
+            }
+        }
+
+        function syncData(isAutoRefresh = false) {
+            const loader = document.getElementById('bgSyncLoader');
+            loader.classList.remove('hidden');
+            loader.style.opacity = '1';
             
+            // Set UI Notifikasi Loading
+            document.getElementById('syncSpinner').outerHTML = `<div class="spinner-small text-blue-600 dark:text-blue-400" id="syncSpinner"></div>`;
+            document.getElementById('syncTitle').innerText = isAutoRefresh ? "Auto-Refresh Data..." : "Menyinkronkan Database...";
+            document.getElementById('syncTitle').className = "text-xs font-bold text-slate-700 dark:text-slate-200";
+            document.getElementById('syncDesc').innerText = "Berjalan di latar belakang";
+
             Papa.parse(GSHEET_CSV_URL, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
+                    // Bersihkan data lama jika ini adalah proses re-fetch
                     rawHeaders = results.meta.fields || [];
+                    allData = [];
+                    dataMapById.clear();
+                    dataMapByIsbn.clear();
+                    dataMapByJudul.clear();
+                    
+                    clearSelectOptions('singleKategori');
+                    clearSelectOptions('singlePengarang');
+                    clearSelectOptions('singleTahun');
+
+                    // Proses Ulang Data
                     processRawData(results.data);
                     renderBatchCheckboxes();
                     
-                    const loader = document.getElementById('bgSyncLoader');
+                    // Set UI Notifikasi Selesai
                     document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-                    document.getElementById('syncTitle').innerText = "Data Siap!";
+                    document.getElementById('syncTitle').innerText = isAutoRefresh ? "Auto-Refresh Selesai!" : "Data Siap!";
                     document.getElementById('syncTitle').className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
-                    document.getElementById('syncDesc').innerText = "Database berhasil disinkronkan";
+                    document.getElementById('syncDesc').innerText = "Database berhasil diperbarui";
                     
                     executeSearch();
 
+                    // Hilangkan notifikasi perlahan
                     setTimeout(() => {
                         loader.style.opacity = '0';
                         setTimeout(() => loader.classList.add('hidden'), 500);
-                    }, 2000);
+                    }, 2500);
+                    
+                    // Mulai ulang Idle timer pasca sync sukses
+                    resetIdleTimer();
+                },
+                error: function() {
+                    document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                    document.getElementById('syncTitle').innerText = "Gagal Sinkronisasi";
+                    document.getElementById('syncTitle').className = "text-xs font-bold text-rose-600 dark:text-rose-400";
+                    setTimeout(() => {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.classList.add('hidden'), 500);
+                    }, 2500);
                 }
             });
-        };
+        }
 
         function processRawData(rawData) {
             let kategoris = new Set(), pengarangs = new Set(), tahuns = new Set();
