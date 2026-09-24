@@ -66,7 +66,7 @@
         <div class="spinner-small text-blue-600 dark:text-blue-400" id="syncSpinner"></div>
         <div>
             <h3 class="text-xs font-bold text-slate-700 dark:text-slate-200" id="syncTitle">Menyinkronkan Database...</h3>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="syncDesc">Sedang diproses — Mohon ditunggu</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400" id="syncDesc">Berjalan di latar belakang</p>
         </div>
     </div>
 
@@ -295,7 +295,7 @@
                         <svg class="w-8 h-8 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     </div>
                     <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-1" id="fileStatusText">Pilih atau letakkan file Excel di sini</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Sistem otomatis mendeteksi header (ID/ISBN/Judul)</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Sistem pintar mendeteksi header secara otomatis (Fuzzy Match)</p>
                 </div>
 
                 <!-- Always visible column checkbox area -->
@@ -553,36 +553,32 @@
 
         // --- IDLE TIMER SYSTEM (30 Menit) ---
         let idleTimeout;
-        const IDLE_LIMIT = 30 * 60 * 1000; // 30 Menit dalam milliseconds
+        const IDLE_LIMIT = 30 * 60 * 1000; // 30 Menit
 
         function resetIdleTimer() {
             clearTimeout(idleTimeout);
             idleTimeout = setTimeout(() => {
-                // Eksekusi auto refresh saat diam 30 menit
                 syncData(true); 
             }, IDLE_LIMIT);
         }
 
         function setupIdleTimer() {
-            // Pasang sensor aktivitas user
             document.addEventListener('mousemove', resetIdleTimer);
             document.addEventListener('keypress', resetIdleTimer);
             document.addEventListener('touchstart', resetIdleTimer);
             document.addEventListener('scroll', resetIdleTimer);
-            resetIdleTimer(); // Mulai timer
+            resetIdleTimer();
         }
 
         window.onload = () => {
             renderNotifs(); 
             setupIdleTimer();
-            syncData(false); // Ambil data saat pertama kali buka
+            syncData(false); 
         };
 
         function clearSelectOptions(elementId) {
             const el = document.getElementById(elementId);
-            while (el.options.length > 1) {
-                el.remove(1);
-            }
+            while (el.options.length > 1) el.remove(1);
         }
 
         function syncData(isAutoRefresh = false) {
@@ -590,7 +586,6 @@
             loader.classList.remove('hidden');
             loader.style.opacity = '1';
             
-            // Set UI Notifikasi Loading
             document.getElementById('syncSpinner').outerHTML = `<div class="spinner-small text-blue-600 dark:text-blue-400" id="syncSpinner"></div>`;
             document.getElementById('syncTitle').innerText = isAutoRefresh ? "Auto-Refresh Data..." : "Menyinkronkan Database...";
             document.getElementById('syncTitle').className = "text-xs font-bold text-slate-700 dark:text-slate-200";
@@ -599,7 +594,6 @@
             Papa.parse(GSHEET_CSV_URL, {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
-                    // Bersihkan data lama jika ini adalah proses re-fetch
                     rawHeaders = results.meta.fields || [];
                     allData = [];
                     dataMapById.clear();
@@ -610,11 +604,9 @@
                     clearSelectOptions('singlePengarang');
                     clearSelectOptions('singleTahun');
 
-                    // Proses Ulang Data
                     processRawData(results.data);
                     renderBatchCheckboxes();
                     
-                    // Set UI Notifikasi Selesai
                     document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
                     document.getElementById('syncTitle').innerText = isAutoRefresh ? "Auto-Refresh Selesai!" : "Data Siap!";
                     document.getElementById('syncTitle').className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
@@ -622,13 +614,11 @@
                     
                     executeSearch();
 
-                    // Hilangkan notifikasi perlahan
                     setTimeout(() => {
                         loader.style.opacity = '0';
                         setTimeout(() => loader.classList.add('hidden'), 500);
                     }, 2500);
                     
-                    // Mulai ulang Idle timer pasca sync sukses
                     resetIdleTimer();
                 },
                 error: function() {
@@ -854,7 +844,7 @@
             }
         }
 
-        // --- BATCH PROCESSING ---
+        // --- BATCH PROCESSING (DENGAN FUZZY MATCH HEADER) ---
         function renderBatchCheckboxes() {
             const container = document.getElementById('column-checkboxes');
             const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang', 'edisi', 'hargajual_gp1'];
@@ -904,6 +894,13 @@
             let idColIndex = -1, isbnColIndex = -1, judulColIndex = -1;
             currentBatchResult = [];
 
+            // KAMUS ALIAS (Fuzzy Match Rules)
+            const cleanStr = (str) => String(str).toLowerCase().replace(/[^a-z0-9]/g, ''); // Hapus spasi & tanda baca
+            const idAliases = ['id', 'iditem', 'idbuku', 'kode', 'kodebsoft', 'sku', 'itemid', 'kodeproduk', 'kodeitem'];
+            const isbnAliases = ['isbn', 'barcode', 'ean', 'kodebarcode', 'noisbn'];
+            const judulAliases = ['judul', 'judulbuku', 'item', 'produk', 'list', 'listjudul', 'title', 'nama', 'namabuku', 'namaproduk', 'deskripsi', 'namaitem'];
+            const pengarangAliases = ['pengarang', 'penulis', 'pencipta', 'karya', 'ditulisoleh', 'author'];
+
             for(let i = 0; i < pendingBatchData.length; i++) {
                 const row = pendingBatchData[i];
                 if (!row || row.length === 0) {
@@ -915,8 +912,13 @@
                     continue;
                 }
 
-                const rowLower = row.map(cell => cell ? String(cell).toLowerCase().trim() : '');
-                const isHeader = rowLower.some(c => typeof c === 'string' && ['judul', 'title', 'nama', 'isbn', 'barcode', 'kode', 'id', 'id item', 'iditem'].includes(c));
+                // Bersihkan setiap cell dari spasi/tanda baca untuk mendeteksi header
+                const rowClean = row.map(cell => cell ? cleanStr(cell) : '');
+                
+                // Deteksi jika baris adalah Header dengan mengecek kecocokan kamus alias
+                const isHeader = rowClean.some(c => 
+                    idAliases.includes(c) || isbnAliases.includes(c) || judulAliases.includes(c) || pengarangAliases.includes(c)
+                );
 
                 let resultRow = {};
                 for(let c=0; c<maxCols; c++) {
@@ -925,9 +927,10 @@
                 }
 
                 if (isHeader) {
-                    idColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'id' || c.includes('kode') || c.includes('id item') || c.includes('iditem')));
-                    isbnColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'isbn' || c.includes('barcode')));
-                    judulColIndex = rowLower.findIndex(c => typeof c === 'string' && (c === 'judul' || c === 'title' || c === 'nama'));
+                    // Update indeks penarik data berdasarkan posisi header yang ditemukan
+                    idColIndex = rowClean.findIndex(c => idAliases.includes(c));
+                    isbnColIndex = rowClean.findIndex(c => isbnAliases.includes(c));
+                    judulColIndex = rowClean.findIndex(c => judulAliases.includes(c));
 
                     batchSelectedHeaders.forEach(h => resultRow[`BSOFT_${h}`] = `[HEADER]`);
                     resultRow["Status Pencarian"] = "HEADER DATA";
@@ -936,13 +939,16 @@
                 }
 
                 let match = null;
+                // Ambil string mentah/aslinya (hanya hapus spasi awal/akhir dan lowerCase) untuk dicocokkan ke database
                 const valJudul = judulColIndex !== -1 ? String(row[judulColIndex] || '').trim().toLowerCase() : '';
                 const valId = idColIndex !== -1 ? String(row[idColIndex] || '').trim().toLowerCase() : '';
                 const valIsbn = isbnColIndex !== -1 ? String(row[isbnColIndex] || '').trim().toLowerCase() : '';
 
-                const isSummaryRow = rowLower.some(c => typeof c === 'string' && (c.includes('total') || c.includes('qty') || c.includes('subtotal')));
+                // Abaikan baris total / summary dari file Excel
+                const isSummaryRow = rowClean.some(c => c.includes('total') || c.includes('qty') || c.includes('subtotal'));
 
                 if (!isSummaryRow && (valJudul || valId || valIsbn)) {
+                    // Prioritas Pencarian: ID -> ISBN -> Judul
                     if (valId) { match = dataMapById.get(valId); }
                     if (!match && valIsbn) { match = dataMapByIsbn.get(valIsbn); }
                     if (!match && valJudul) { match = dataMapByJudul.get(valJudul); }
