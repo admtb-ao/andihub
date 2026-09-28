@@ -290,7 +290,8 @@
 
                 <div id="batchActionArea" class="text-left pt-2">
                     <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Pilih kolom yang ditarik:</h4>
-                    <div id="column-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5 max-h-40 overflow-y-auto p-2">
+                    <!-- Grid disesuaikan dan tinggi maksimal ditambah agar teks panjang tidak tumpang tindih -->
+                    <div id="column-checkboxes" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 max-h-60 overflow-y-auto p-2">
                         <p class="text-xs text-slate-400 col-span-2">Memuat pilihan kolom...</p>
                     </div>
                     <button onclick="executeBatchProcess()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-blue-500/30">Mulai Proses Batch</button>
@@ -876,9 +877,9 @@
             rawHeaders.forEach(header => {
                 const isChecked = defaultChecked.includes(header.toLowerCase()) ? 'checked' : '';
                 html += `
-                    <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
-                        <input type="checkbox" value="${header}" class="batch-col-cb w-3.5 h-3.5 text-blue-600 rounded border-slate-300 focus:ring-blue-500 bg-white dark:bg-slate-700" ${isChecked}>
-                        <span class="truncate">${header}</span>
+                    <label class="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+                        <input type="checkbox" value="${header}" class="batch-col-cb flex-shrink-0 mt-0.5 w-3.5 h-3.5 text-blue-600 rounded border-slate-300 focus:ring-blue-500 bg-white dark:bg-slate-700" ${isChecked}>
+                        <span class="break-words leading-relaxed">${header}</span>
                     </label>
                 `;
             });
