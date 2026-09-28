@@ -81,14 +81,11 @@
                 </div>
             </div>
             <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
-                <!-- Tombol Search -->
                 <button onclick="focusSearch()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Cari Data"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button>
-                <!-- Tombol Notifikasi -->
                 <button onclick="openModal('notifModal')" class="hover:text-blue-600 dark:hover:text-blue-400 relative transition-colors" title="Notifikasi Export">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                     <span id="notifBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
                 </button>
-                <!-- Tombol Tema -->
                 <button onclick="toggleTheme()" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Ganti Tema Mode">
                     <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 </button>
@@ -107,7 +104,6 @@
             <div class="relative z-10 hidden sm:block">
                 <svg class="w-24 h-24 text-blue-500 dark:text-blue-400 opacity-80" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
             </div>
-            <!-- Decorative Blobs -->
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-300 dark:bg-blue-600 rounded-full blur-3xl opacity-30 -translate-y-1/2 translate-x-1/3"></div>
             <div class="absolute bottom-0 left-10 w-24 h-24 bg-blue-400 dark:bg-blue-500 rounded-full blur-2xl opacity-20 translate-y-1/2"></div>
         </div>
@@ -158,7 +154,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
-                    <!-- Kategori -->
                     <div class="space-y-1.5">
                         <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Kategori Buku</label>
                         <div class="relative">
@@ -169,7 +164,6 @@
                         </div>
                     </div>
 
-                    <!-- Pengarang -->
                     <div class="space-y-1.5">
                         <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Pengarang</label>
                         <div class="relative">
@@ -180,7 +174,6 @@
                         </div>
                     </div>
 
-                    <!-- Tahun Terbit (Gabungan Dropdown & MinMax) -->
                     <div class="space-y-1.5">
                         <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Tahun Terbit</label>
                         <div class="relative mb-1.5">
@@ -195,15 +188,13 @@
                         </div>
                     </div>
 
-                    <!-- Sisa Stok -->
                     <div class="space-y-1.5">
                         <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Sisa Stok</label>
                         <div class="relative mb-1.5">
                             <select id="singleStok" onchange="executeSearch()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 cursor-pointer">
                                 <option value="all">Semua Kondisi Stok</option>
                                 <option value="aman">Stok Aman (>= 100)</option>
-                                <option value="kritis">Stok Kritis (1 - 99)</option>
-                                <option value="habis">Stok Habis (0)</option>
+                                <option value="kritis">Stok Kritis (0 - 99)</option>
                             </select>
                             <svg class="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
@@ -213,7 +204,6 @@
                         </div>
                     </div>
 
-                    <!-- Harga GP1 -->
                     <div class="space-y-1.5 lg:col-span-2">
                         <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">Harga GP1</label>
                         <div class="flex flex-col sm:flex-row gap-2">
@@ -239,7 +229,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <input type="text" id="searchInput" placeholder="Cari berdasarkan ID, ISBN, Judul atau Pengarang..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg pl-10 pr-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" oninput="executeSearch()" onkeypress="if(event.key === 'Enter') { saveHistory(this.value); this.blur(); }">
+                    <input type="text" id="searchInput" placeholder="Cari berdasarkan ID ORIN, ID Item, ISBN, Judul atau Pengarang..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-lg pl-10 pr-4 py-3 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" oninput="executeSearch()" onkeypress="if(event.key === 'Enter') { saveHistory(this.value); this.blur(); }">
                 </div>
             </div>
 
@@ -298,7 +288,6 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">Sistem pintar mendeteksi header secara otomatis (Fuzzy Match)</p>
                 </div>
 
-                <!-- Always visible column checkbox area -->
                 <div id="batchActionArea" class="text-left pt-2">
                     <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-3">Pilih kolom yang ditarik:</h4>
                     <div id="column-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5 max-h-40 overflow-y-auto p-2">
@@ -543,9 +532,10 @@
 
         // --- DATA PROCESSING & SINKRONISASI ---
         const GSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1oOR3gFw363uttAx6nFnf1ffVvVjY4v-dxn9C0Ij4VLU/export?format=csv";
+        const GSHEET_ORIN_URL = "https://docs.google.com/spreadsheets/d/1U2jYvdm-ZYXOSh2MQe04nQJXNkfOExIiFvmh8K-hNkM/export?format=csv";
         
         let rawHeaders = [], allData = [];
-        let dataMapById = new Map(), dataMapByIsbn = new Map(), dataMapByJudul = new Map();
+        let dataMapById = new Map(), dataMapByIsbn = new Map(), dataMapByJudul = new Map(), dataMapByOrin = new Map();
         
         let currentSingleData = [], singleRenderIndex = 0;
         const ITEMS_PER_PAGE = 30; 
@@ -581,7 +571,17 @@
             while (el.options.length > 1) el.remove(1);
         }
 
-        function syncData(isAutoRefresh = false) {
+        // Helper fungsi tarik CSV
+        function fetchCSV(url) {
+            return new Promise((resolve, reject) => {
+                Papa.parse(url, {
+                    download: true, header: true, skipEmptyLines: true,
+                    complete: resolve, error: reject
+                });
+            });
+        }
+
+        async function syncData(isAutoRefresh = false) {
             const loader = document.getElementById('bgSyncLoader');
             loader.classList.remove('hidden');
             loader.style.opacity = '1';
@@ -591,46 +591,51 @@
             document.getElementById('syncTitle').className = "text-xs font-bold text-slate-700 dark:text-slate-200";
             document.getElementById('syncDesc').innerText = "Sedang diproses - mohon ditunggu";
 
-            Papa.parse(GSHEET_CSV_URL, {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(results) {
-                    rawHeaders = results.meta.fields || [];
-                    allData = [];
-                    dataMapById.clear();
-                    dataMapByIsbn.clear();
-                    dataMapByJudul.clear();
-                    
-                    clearSelectOptions('singleKategori');
-                    clearSelectOptions('singlePengarang');
-                    clearSelectOptions('singleTahun');
+            try {
+                // Tarik kedua GSheet secara pararel
+                const [resMain, resOrin] = await Promise.all([
+                    fetchCSV(GSHEET_CSV_URL),
+                    fetchCSV(GSHEET_ORIN_URL)
+                ]);
 
-                    processRawData(results.data);
-                    renderBatchCheckboxes();
-                    
-                    document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-                    document.getElementById('syncTitle').innerText = isAutoRefresh ? "Auto-Refresh Selesai!" : "Data Siap!";
-                    document.getElementById('syncTitle').className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
-                    document.getElementById('syncDesc').innerText = "Database berhasil diperbarui";
-                    
-                    executeSearch();
+                rawHeaders = resMain.meta.fields || [];
+                allData = [];
+                dataMapById.clear();
+                dataMapByIsbn.clear();
+                dataMapByJudul.clear();
+                dataMapByOrin.clear();
+                
+                clearSelectOptions('singleKategori');
+                clearSelectOptions('singlePengarang');
+                clearSelectOptions('singleTahun');
 
-                    setTimeout(() => {
-                        loader.style.opacity = '0';
-                        setTimeout(() => loader.classList.add('hidden'), 500);
-                    }, 2500);
-                    
-                    resetIdleTimer();
-                },
-                error: function() {
-                    document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
-                    document.getElementById('syncTitle').innerText = "Gagal Sinkronisasi";
-                    document.getElementById('syncTitle').className = "text-xs font-bold text-rose-600 dark:text-rose-400";
-                    setTimeout(() => {
-                        loader.style.opacity = '0';
-                        setTimeout(() => loader.classList.add('hidden'), 500);
-                    }, 2500);
-                }
-            });
+                processRawData(resMain.data);
+                processOrinData(resOrin.data);
+                
+                renderBatchCheckboxes();
+                
+                document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                document.getElementById('syncTitle').innerText = isAutoRefresh ? "Auto-Refresh Selesai!" : "Data Siap!";
+                document.getElementById('syncTitle').className = "text-xs font-bold text-emerald-600 dark:text-emerald-400";
+                document.getElementById('syncDesc').innerText = "Database berhasil diperbarui";
+                
+                executeSearch();
+
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.classList.add('hidden'), 500);
+                }, 2500);
+                
+                resetIdleTimer();
+            } catch (error) {
+                document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                document.getElementById('syncTitle').innerText = "Gagal Sinkronisasi";
+                document.getElementById('syncTitle').className = "text-xs font-bold text-rose-600 dark:text-rose-400";
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.classList.add('hidden'), 500);
+                }, 2500);
+            }
         }
 
         function processRawData(rawData) {
@@ -687,6 +692,27 @@
             });
         }
 
+        // Modul pemrosesan Database Kedua (ID ORIN ke BSOFT)
+        function processOrinData(rawData) {
+            rawData.forEach(row => {
+                const keys = Object.keys(row);
+                // Mendeteksi nilai berdasarkan Header (Mendukung "ID ORIN" atau indeks pilar fallback)
+                let idOrin = row['ID ORIN'] || row['id orin'] || row[keys[1]];
+                let kodeBsoft = row['KODE BSOFT'] || row['kode bsoft'] || row[keys[2]];
+                
+                if (idOrin && kodeBsoft) {
+                    idOrin = String(idOrin).trim().toLowerCase();
+                    kodeBsoft = String(kodeBsoft).trim().toLowerCase();
+                    
+                    const item = dataMapById.get(kodeBsoft);
+                    if (item) {
+                        item.idOrin = idOrin; // Menyuntikkan properti ID ORIN ke dataset Master
+                        dataMapByOrin.set(idOrin, item);
+                    }
+                }
+            });
+        }
+
         function populateSelect(elementId, set) {
             const el = document.getElementById(elementId);
             Array.from(set).sort().forEach(val => {
@@ -730,8 +756,9 @@
                     const matchJudul = String(d.judul).toLowerCase().includes(input);
                     const matchIsbn = String(d.isbn).toLowerCase().includes(input);
                     const matchPeng = String(d.pengarang).toLowerCase().includes(input);
+                    const matchOrin = d.idOrin ? String(d.idOrin).toLowerCase().includes(input) : false;
                     
-                    if (!(matchId || matchJudul || matchIsbn || matchPeng)) return false;
+                    if (!(matchId || matchJudul || matchIsbn || matchPeng || matchOrin)) return false;
                 }
                 
                 if(kat && d.subTipe !== kat) return false;
@@ -742,13 +769,12 @@
                 if(tMax && d.tahun_terbit > parseInt(tMax)) return false;
                 if(!tMin && !tMax && thnDrop && d.tahun_terbit.toString() !== thnDrop) return false;
                 
-                // Stok Logic
+                // Stok Logic (Habis tergabung di Kritis)
                 if(sMin && d.stok < parseInt(sMin)) return false;
                 if(sMax && d.stok > parseInt(sMax)) return false;
                 if(!sMin && !sMax) {
                     if(stokDrop === 'aman' && d.stok < 100) return false;
-                    if(stokDrop === 'kritis' && (d.stok <= 0 || d.stok >= 100)) return false;
-                    if(stokDrop === 'habis' && d.stok > 0) return false;
+                    if(stokDrop === 'kritis' && d.stok >= 100) return false;
                 }
                 
                 // Harga Logic
@@ -789,13 +815,10 @@
                 const item = currentSingleData[i];
                 
                 let stockLabel, stockClass, iconPath;
-                if(item.stok <= 0) {
-                    stockLabel = `Stok Habis (0)`;
-                    stockClass = 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800';
-                    iconPath = 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
-                } else if (item.stok > 0 && item.stok < 100) {
+                // Logika Stok: 0-99 adalah Stok Kritis
+                if (item.stok < 100) {
                     stockLabel = `Stok Kritis (${item.stok})`;
-                    stockClass = 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+                    stockClass = 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800';
                     iconPath = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
                 } else {
                     stockLabel = `Stok Tersedia (${item.stok})`;
@@ -821,6 +844,7 @@
                                 <div class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 space-y-0.5">
                                     <div>ISBN ${item.isbn}</div>
                                     <div>ID ITEM ${item.id}</div>
+                                    ${item.idOrin ? `<div class="text-blue-500 dark:text-blue-400 font-semibold">ID ORIN ${item.idOrin.toUpperCase()}</div>` : ''}
                                 </div>
                                 <div class="text-right flex-shrink-0">
                                     <div class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Rp ${item.hargaGP1.toLocaleString('id-ID')} <span class="text-[9px] sm:text-[10px] text-slate-400 font-medium">(GP1)</span></div>
@@ -844,7 +868,7 @@
             }
         }
 
-        // --- BATCH PROCESSING (DENGAN FUZZY MATCH HEADER) ---
+        // --- BATCH PROCESSING (DENGAN FUZZY MATCH HEADER & ID ORIN) ---
         function renderBatchCheckboxes() {
             const container = document.getElementById('column-checkboxes');
             const defaultChecked = ['iditem', 'judul', 'isbn', 'pengarang', 'edisi', 'hargajual_gp1'];
@@ -891,12 +915,15 @@
             let maxCols = 0;
             pendingBatchData.forEach(r => { if(r.length > maxCols) maxCols = r.length; });
 
-            let idColIndex = -1, isbnColIndex = -1, judulColIndex = -1;
+            let orinColIndex = -1, idColIndex = -1, isbnColIndex = -1, judulColIndex = -1;
             currentBatchResult = [];
 
-            // KAMUS ALIAS (Fuzzy Match Rules)
+            // KAMUS ALIAS (Fuzzy Match Rules - Support besar/kecil/tanpa spasi)
             const cleanStr = (str) => String(str).toLowerCase().replace(/[^a-z0-9]/g, ''); // Hapus spasi & tanda baca
-            const idAliases = ['id', 'iditem', 'idbuku', 'kode', 'kodebsoft', 'sku', 'itemid', 'kodeproduk', 'kodeitem'];
+            
+            // Aturan alias khusus ID ORIN
+            const orinAliases = ['idorin', 'axcode', 'kodeax', 'itemnumber', 'itemid'];
+            const idAliases = ['id', 'iditem', 'idbuku', 'kode', 'kodebsoft', 'sku', 'kodeproduk', 'kodeitem'];
             const isbnAliases = ['isbn', 'barcode', 'ean', 'kodebarcode', 'noisbn'];
             const judulAliases = ['judul', 'judulbuku', 'item', 'produk', 'list', 'listjudul', 'title', 'nama', 'namabuku', 'namaproduk', 'deskripsi', 'namaitem'];
             const pengarangAliases = ['pengarang', 'penulis', 'pencipta', 'karya', 'ditulisoleh', 'author'];
@@ -912,12 +939,11 @@
                     continue;
                 }
 
-                // Bersihkan setiap cell dari spasi/tanda baca untuk mendeteksi header
+                // Bersihkan setiap cell untuk mendeteksi tipe Header
                 const rowClean = row.map(cell => cell ? cleanStr(cell) : '');
                 
-                // Deteksi jika baris adalah Header dengan mengecek kecocokan kamus alias
                 const isHeader = rowClean.some(c => 
-                    idAliases.includes(c) || isbnAliases.includes(c) || judulAliases.includes(c) || pengarangAliases.includes(c)
+                    orinAliases.includes(c) || idAliases.includes(c) || isbnAliases.includes(c) || judulAliases.includes(c) || pengarangAliases.includes(c)
                 );
 
                 let resultRow = {};
@@ -927,7 +953,8 @@
                 }
 
                 if (isHeader) {
-                    // Update indeks penarik data berdasarkan posisi header yang ditemukan
+                    // Update indeks kolom pencarian
+                    orinColIndex = rowClean.findIndex(c => orinAliases.includes(c));
                     idColIndex = rowClean.findIndex(c => idAliases.includes(c));
                     isbnColIndex = rowClean.findIndex(c => isbnAliases.includes(c));
                     judulColIndex = rowClean.findIndex(c => judulAliases.includes(c));
@@ -939,17 +966,19 @@
                 }
 
                 let match = null;
-                // Ambil string mentah/aslinya (hanya hapus spasi awal/akhir dan lowerCase) untuk dicocokkan ke database
-                const valJudul = judulColIndex !== -1 ? String(row[judulColIndex] || '').trim().toLowerCase() : '';
+                // Ambil string asli
+                const valOrin = orinColIndex !== -1 ? String(row[orinColIndex] || '').trim().toLowerCase() : '';
                 const valId = idColIndex !== -1 ? String(row[idColIndex] || '').trim().toLowerCase() : '';
                 const valIsbn = isbnColIndex !== -1 ? String(row[isbnColIndex] || '').trim().toLowerCase() : '';
+                const valJudul = judulColIndex !== -1 ? String(row[judulColIndex] || '').trim().toLowerCase() : '';
 
-                // Abaikan baris total / summary dari file Excel
+                // Abaikan baris total
                 const isSummaryRow = rowClean.some(c => c.includes('total') || c.includes('qty') || c.includes('subtotal'));
 
-                if (!isSummaryRow && (valJudul || valId || valIsbn)) {
-                    // Prioritas Pencarian: ID -> ISBN -> Judul
-                    if (valId) { match = dataMapById.get(valId); }
+                if (!isSummaryRow && (valJudul || valId || valIsbn || valOrin)) {
+                    // Prioritas Pencarian: ID ORIN -> KODE BSOFT -> ISBN -> JUDUL
+                    if (valOrin) { match = dataMapByOrin.get(valOrin); }
+                    if (!match && valId) { match = dataMapById.get(valId); }
                     if (!match && valIsbn) { match = dataMapByIsbn.get(valIsbn); }
                     if (!match && valJudul) { match = dataMapByJudul.get(valJudul); }
 
@@ -1059,9 +1088,9 @@
         function exportData(dataSource, type, fileName) {
             if(!dataSource || dataSource.length === 0) return alert('Tidak ada data yang bisa di-export.');
             
-            const headers = [['ID ITEM', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'KATEGORI', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
+            const headers = [['ID ITEM', 'ID ORIN', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'KATEGORI', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
             const formatData = dataSource.map(d => [
-                d.id, d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.kategori, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
+                d.id, (d.idOrin ? d.idOrin.toUpperCase() : '-'), d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.kategori, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
             ]);
 
             if(type === 'excel') {
