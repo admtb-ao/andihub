@@ -1035,7 +1035,7 @@
             const bodyTb = document.getElementById('batchTableBody');
             
             const previewOriginalCount = Math.min(maxCols, 3); 
-            const previewBsoftHeaders = batchSelectedHeaders.slice(0, 3); 
+            const previewBsoftHeaders = batchSelectedHeaders; // Tampilkan semua kolom yang dicentang, termasuk Rack. 
             
             let headHtml = `<tr>`;
             for(let c=1; c<=previewOriginalCount; c++) headHtml += `<th class="px-4 py-3 font-semibold text-xs">ASLI ${c}</th>`;
