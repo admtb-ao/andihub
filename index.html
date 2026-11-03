@@ -575,7 +575,8 @@
         // Helper fungsi tarik CSV
         function fetchCSV(url) {
             return new Promise((resolve, reject) => {
-                Papa.parse(url, {
+                const freshUrl = url + (url.includes('?') ? '&' : '?') + '_fresh=' + Date.now();
+                Papa.parse(freshUrl, {
                     download: true, header: true, skipEmptyLines: true,
                     complete: resolve, error: reject
                 });
@@ -628,6 +629,7 @@
                 }, 2500);
                 
                 resetIdleTimer();
+                return true;
             } catch (error) {
                 document.getElementById('syncSpinner').outerHTML = `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
                 document.getElementById('syncTitle').innerText = "Gagal Sinkronisasi";
@@ -636,6 +638,7 @@
                     loader.style.opacity = '0';
                     setTimeout(() => loader.classList.add('hidden'), 500);
                 }, 2500);
+                return false;
             }
         }
 
@@ -662,32 +665,12 @@
                 const gol = row['golongan'] || row[keys[13]] || '';
                 const kategori = (subTipe || gol) ? `${subTipe} ${gol ? '/ '+gol : ''}` : '-';
                 
-                // Harga dibaca berdasarkan NAMA HEADER, bukan posisi kolom.
-                // Ini mencegah harga bergeser ketika database mendapat kolom tambahan.
-                const normalizeHeader = (value) => String(value || '')
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                    .toLowerCase().replace(/[^a-z0-9]/g, '');
-
-                const headerMap = new Map(keys.map(key => [normalizeHeader(key), key]));
-                const findHeader = (aliases, pattern) => {
-                    for (const alias of aliases) {
-                        const found = headerMap.get(normalizeHeader(alias));
-                        if (found !== undefined) return found;
-                    }
-                    if (pattern) {
-                        const found = keys.find(key => pattern.test(normalizeHeader(key)));
-                        if (found !== undefined) return found;
-                    }
-                    return null;
-                };
-
+                // Posisi kolom database yang dikonfirmasi: U=GP1, V=GP2, W=GP3, Z=Rack.
                 const parsePrice = (value) => {
                     if (value === null || value === undefined || value === '') return 0;
                     if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
                     let str = String(value).trim().replace(/[^0-9,.-]/g, '');
                     if (!str) return 0;
-
-                    // Format Indonesia: 125.000,50 atau 125.000
                     if (str.includes('.') && str.includes(',')) {
                         str = str.lastIndexOf(',') > str.lastIndexOf('.')
                             ? str.replace(/\./g, '').replace(',', '.')
@@ -699,36 +682,18 @@
                         const decimals = str.split('.').pop();
                         if (decimals.length === 3) str = str.replace(/\./g, '');
                     }
-
                     const parsed = Number(str);
                     return Number.isFinite(parsed) ? parsed : 0;
                 };
-
-                const gp1Header = findHeader(
-                    ['hargajual_gp1', 'harga_jual_gp1', 'harga gp1', 'hargagp1', 'gp1'],
-                    /^(?:hargajual|hargajualbuku|harga)?gp1$/
-                );
-                const gp2Header = findHeader(
-                    ['hargajual_gp2', 'harga_jual_gp2', 'harga gp2', 'hargagp2', 'gp2'],
-                    /^(?:hargajual|hargajualbuku|harga)?gp2$/
-                );
-                const gp3Header = findHeader(
-                    ['hargajual_gp3', 'harga_jual_gp3', 'harga gp3', 'hargagp3', 'gp3'],
-                    /^(?:hargajual|hargajualbuku|harga)?gp3$/
-                );
-
-                const hargaGP1 = gp1Header ? parsePrice(row[gp1Header]) : 0;
-                const hargaGP2 = gp2Header ? parsePrice(row[gp2Header]) : 0;
-                const hargaGP3 = gp3Header ? parsePrice(row[gp3Header]) : 0;
-                const stokHeader = findHeader(
-                    ['stok', 'sisa_stok', 'stok_akhir', 'qty_stok', 'saldo_stok'],
-                    /^(?:sisa)?stok(?:akhir)?$/
-                );
-                const stok = parseInt(stokHeader ? row[stokHeader] : row[keys[keys.length - 1]], 10) || 0;
+                const hargaGP1 = parsePrice(row[keys[20]]);
+                const hargaGP2 = parsePrice(row[keys[21]]);
+                const hargaGP3 = parsePrice(row[keys[22]]);
+                const rack = String(row[keys[25]] ?? '').trim();
+                const stok = parseInt(row[keys[keys.length - 1]], 10) || 0;
 
                 const itemObj = { 
                     id, judul, pengarang, edisi, isbn, tahun_terbit, 
-                    kategori, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, stok, rawRow: row 
+                    kategori, subTipe, gol, hargaGP1, hargaGP2, hargaGP3, rack, stok, rawRow: row 
                 };
                 
                 allData.push(itemObj);
@@ -904,6 +869,7 @@
                                 <div class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 space-y-0.5">
                                     <div>ISBN ${item.isbn}</div>
                                     <div>ID ITEM ${item.id}</div>
+                                    <div>RACK ${item.rack || '-'}</div>
                                     ${item.idOrin ? `<div class="text-blue-500 dark:text-blue-400 font-semibold">ID ORIN ${item.idOrin.toUpperCase()}</div>` : ''}
                                 </div>
                                 <div class="text-right flex-shrink-0">
@@ -968,10 +934,15 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function executeBatchProcess() {
-            if(allData.length === 0) return alert("Database utama belum selesai tersinkronisasi.");
+        async function executeBatchProcess() {
             if(!pendingBatchData || pendingBatchData.length === 0) return alert("File Excel kosong atau belum dipilih!");
-            
+            // Simpan pilihan kolom, lalu paksa tarik ulang database terbaru sebelum pencocokan.
+            const selectedBeforeSync = Array.from(document.querySelectorAll('.batch-col-cb:checked')).map(cb => cb.value);
+            const synced = await syncData(true);
+            if (!synced || allData.length === 0) return alert("Database terbaru gagal disinkronkan. Batch Lookup dibatalkan agar tidak memakai data lama.");
+            document.querySelectorAll('.batch-col-cb').forEach(cb => {
+                cb.checked = selectedBeforeSync.includes(cb.value);
+            });
             const cbs = document.querySelectorAll('.batch-col-cb:checked');
             batchSelectedHeaders = Array.from(cbs).map(cb => cb.value);
             if(batchSelectedHeaders.length === 0) return alert("Pilih minimal 1 kolom tambahan untuk ditarik!");
@@ -1152,9 +1123,9 @@
         function exportData(dataSource, type, fileName) {
             if(!dataSource || dataSource.length === 0) return alert('Tidak ada data yang bisa di-export.');
             
-            const headers = [['ID ITEM', 'ID ORIN', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'KATEGORI', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
+            const headers = [['ID ITEM', 'ID ORIN', 'ISBN', 'JUDUL', 'PENGARANG', 'EDISI', 'TAHUN', 'KATEGORI', 'RACK', 'STOK', 'HARGA GP1', 'HARGA GP2', 'HARGA GP3']];
             const formatData = dataSource.map(d => [
-                d.id, (d.idOrin ? d.idOrin.toUpperCase() : '-'), d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.kategori, d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
+                d.id, (d.idOrin ? d.idOrin.toUpperCase() : '-'), d.isbn, d.judul, d.pengarang, d.edisi, d.tahun_terbit, d.kategori, d.rack || '-', d.stok, d.hargaGP1, d.hargaGP2, d.hargaGP3
             ]);
 
             if(type === 'excel') {
