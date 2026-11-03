@@ -907,7 +907,11 @@
                                     ${item.idOrin ? `<div class="text-blue-500 dark:text-blue-400 font-semibold">ID ORIN ${item.idOrin.toUpperCase()}</div>` : ''}
                                 </div>
                                 <div class="text-right flex-shrink-0">
-                                    <div class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Rp ${item.hargaGP1.toLocaleString('id-ID')} <span class="text-[9px] sm:text-[10px] text-slate-400 font-medium">(GP1)</span></div>
+                                    <div class="space-y-0.5 text-[10px] sm:text-xs">
+                                        <div class="font-extrabold text-slate-800 dark:text-slate-200">GP1: Rp ${item.hargaGP1.toLocaleString('id-ID')}</div>
+                                        <div class="font-semibold text-slate-600 dark:text-slate-300">GP2: Rp ${item.hargaGP2.toLocaleString('id-ID')}</div>
+                                        <div class="font-semibold text-slate-600 dark:text-slate-300">GP3: Rp ${item.hargaGP3.toLocaleString('id-ID')}</div>
+                                    </div>
                                     <div class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-end gap-1">
                                         <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                         <span class="truncate max-w-[120px] sm:max-w-[180px]">${item.kategori}</span>
