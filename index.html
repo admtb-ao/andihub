@@ -665,7 +665,7 @@
                 // Harga dibaca berdasarkan NAMA HEADER, bukan posisi kolom.
                 // Ini mencegah harga bergeser ketika database mendapat kolom tambahan.
                 const normalizeHeader = (value) => String(value || '')
-                    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
                     .toLowerCase().replace(/[^a-z0-9]/g, '');
 
                 const headerMap = new Map(keys.map(key => [normalizeHeader(key), key]));
@@ -690,14 +690,14 @@
                     // Format Indonesia: 125.000,50 atau 125.000
                     if (str.includes('.') && str.includes(',')) {
                         str = str.lastIndexOf(',') > str.lastIndexOf('.')
-                            ? str.replace(/\\./g, '').replace(',', '.')
+                            ? str.replace(/\./g, '').replace(',', '.')
                             : str.replace(/,/g, '');
                     } else if (str.includes(',')) {
                         const decimals = str.split(',').pop();
                         str = decimals.length <= 2 ? str.replace(',', '.') : str.replace(/,/g, '');
                     } else if (str.includes('.')) {
                         const decimals = str.split('.').pop();
-                        if (decimals.length === 3) str = str.replace(/\\./g, '');
+                        if (decimals.length === 3) str = str.replace(/\./g, '');
                     }
 
                     const parsed = Number(str);
