@@ -662,10 +662,69 @@
                 const gol = row['golongan'] || row[keys[13]] || '';
                 const kategori = (subTipe || gol) ? `${subTipe} ${gol ? '/ '+gol : ''}` : '-';
                 
-                const hargaGP1 = parseFloat(row[keys[14]]) || 0;
-                const hargaGP2 = parseFloat(row[keys[15]]) || 0;
-                const hargaGP3 = parseFloat(row[keys[16]]) || 0;
-                const stok = parseInt(row[keys[keys.length - 1]]) || 0;
+                // Harga dibaca berdasarkan NAMA HEADER, bukan posisi kolom.
+                // Ini mencegah harga bergeser ketika database mendapat kolom tambahan.
+                const normalizeHeader = (value) => String(value || '')
+                    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+                    .toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                const headerMap = new Map(keys.map(key => [normalizeHeader(key), key]));
+                const findHeader = (aliases, pattern) => {
+                    for (const alias of aliases) {
+                        const found = headerMap.get(normalizeHeader(alias));
+                        if (found !== undefined) return found;
+                    }
+                    if (pattern) {
+                        const found = keys.find(key => pattern.test(normalizeHeader(key)));
+                        if (found !== undefined) return found;
+                    }
+                    return null;
+                };
+
+                const parsePrice = (value) => {
+                    if (value === null || value === undefined || value === '') return 0;
+                    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+                    let str = String(value).trim().replace(/[^0-9,.-]/g, '');
+                    if (!str) return 0;
+
+                    // Format Indonesia: 125.000,50 atau 125.000
+                    if (str.includes('.') && str.includes(',')) {
+                        str = str.lastIndexOf(',') > str.lastIndexOf('.')
+                            ? str.replace(/\\./g, '').replace(',', '.')
+                            : str.replace(/,/g, '');
+                    } else if (str.includes(',')) {
+                        const decimals = str.split(',').pop();
+                        str = decimals.length <= 2 ? str.replace(',', '.') : str.replace(/,/g, '');
+                    } else if (str.includes('.')) {
+                        const decimals = str.split('.').pop();
+                        if (decimals.length === 3) str = str.replace(/\\./g, '');
+                    }
+
+                    const parsed = Number(str);
+                    return Number.isFinite(parsed) ? parsed : 0;
+                };
+
+                const gp1Header = findHeader(
+                    ['hargajual_gp1', 'harga_jual_gp1', 'harga gp1', 'hargagp1', 'gp1'],
+                    /^(?:hargajual|hargajualbuku|harga)?gp1$/
+                );
+                const gp2Header = findHeader(
+                    ['hargajual_gp2', 'harga_jual_gp2', 'harga gp2', 'hargagp2', 'gp2'],
+                    /^(?:hargajual|hargajualbuku|harga)?gp2$/
+                );
+                const gp3Header = findHeader(
+                    ['hargajual_gp3', 'harga_jual_gp3', 'harga gp3', 'hargagp3', 'gp3'],
+                    /^(?:hargajual|hargajualbuku|harga)?gp3$/
+                );
+
+                const hargaGP1 = gp1Header ? parsePrice(row[gp1Header]) : 0;
+                const hargaGP2 = gp2Header ? parsePrice(row[gp2Header]) : 0;
+                const hargaGP3 = gp3Header ? parsePrice(row[gp3Header]) : 0;
+                const stokHeader = findHeader(
+                    ['stok', 'sisa_stok', 'stok_akhir', 'qty_stok', 'saldo_stok'],
+                    /^(?:sisa)?stok(?:akhir)?$/
+                );
+                const stok = parseInt(stokHeader ? row[stokHeader] : row[keys[keys.length - 1]], 10) || 0;
 
                 const itemObj = { 
                     id, judul, pengarang, edisi, isbn, tahun_terbit, 
